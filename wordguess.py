@@ -5,37 +5,6 @@ import sys
 import os
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_RETURN, K_BACKSPACE
 
-pygame.init()
-screen = pygame.display.set_mode(
-    pygame.display.list_modes()[0], pygame.FULLSCREEN)
-
-pygame.display.set_caption("Hi kids, this is the word guessing game")
-
-# filename = '/usr/share/dict/ngerman'
-filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        'samplewords')
-
-with open(filename) as f:
-    wordlist = f.read().splitlines()
-
-wordlist = set(map(str.upper, wordlist))
-
-RED = (250, 0, 0)
-BLACK = (10, 10, 10)
-GREEN = (0, 250, 0)
-
-background = pygame.Surface(screen.get_size())
-background = background.convert()
-background.fill((250, 250, 250))
-screen.blit(background, (0, 0))
-current_word = ''
-required_start = ''
-message = ''
-
-color = BLACK
-
-already_seen_words = []
-
 
 def render_text(word, col, ypos=0, xpos=None):
     font = pygame.font.Font(None, 36)
@@ -46,6 +15,7 @@ def render_text(word, col, ypos=0, xpos=None):
 
 
 def render():
+    global current_word, color, message, RED
     background.fill((250, 250, 250))
     render_text(current_word, color)
     render_text(message, RED, 0, 200)
@@ -55,6 +25,7 @@ def render():
 
 
 def render_words_so_far():
+    global already_seen_words, GREEN
     length = len(already_seen_words)
     text = 'Not a word...' if length == 0 else 'Nice ' + str(length)
     if length > 0:
@@ -65,10 +36,6 @@ def render_words_so_far():
         render_text(word, GREEN, cnt)
         cnt = cnt + 1
 
-current_word = 'Please enter a start word'
-render()
-current_word = ''
-
 
 def quit():
     pygame.quit()
@@ -76,7 +43,8 @@ def quit():
 
 
 def check_word():
-    global color, message
+    global color, message, RED, BLACK, current_word, wordlist, \
+        already_seen_words
     color = RED if current_word not in wordlist else BLACK
     if current_word in already_seen_words:
         color = RED
@@ -87,38 +55,81 @@ def check_word():
         message = "You've already used that word..."
     render()
 
-while True:
-    pygame.time.Clock().tick(60)
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            quit()
-        elif event.type == KEYDOWN and event.key == K_ESCAPE:
-            quit()
-        elif event.type == KEYDOWN and event.key == K_BACKSPACE:
-            current_word = current_word[:-1]
-            check_word()
-        elif event.type == KEYDOWN and event.key == K_RETURN:
-            message = ''
-            if len(current_word) == 0:
-                continue
-            check_word()
-            if current_word in already_seen_words:
-                message = "You've already used that word..."
-                render()
-                continue
-            if current_word not in wordlist:
-                message = "I don't know that word..."
-                render()
-                continue
-            already_seen_words.append(current_word)
-            required_start = current_word[-1]
-            current_word = ''
-            render()
-        elif event.type == KEYDOWN:
-            if not event.unicode.isalpha():
-                continue
-            current_word = (current_word + event.unicode).upper()
-            if not current_word.startswith(required_start):
+
+def main():
+    global current_word, RED, GREEN, BLACK, message, color, \
+        already_seen_words
+    pygame.init()
+    screen = pygame.display.set_mode(
+        pygame.display.list_modes()[0], pygame.FULLSCREEN)
+
+    pygame.display.set_caption("Hi kids, this is the word guessing game")
+
+    # filename = '/usr/share/dict/ngerman'
+    filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'samplewords')
+
+    with open(filename) as f:
+        wordlist = f.read().splitlines()
+
+    wordlist = set(map(str.upper, wordlist))
+
+    RED = (250, 0, 0)
+    BLACK = (10, 10, 10)
+    GREEN = (0, 250, 0)
+
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill((250, 250, 250))
+    screen.blit(background, (0, 0))
+    current_word = ''
+    required_start = ''
+    message = ''
+
+    color = BLACK
+
+    already_seen_words = []
+
+    current_word = 'Please enter a start word'
+    render()
+    current_word = ''
+
+    while True:
+        pygame.time.Clock().tick(60)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                quit()
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                quit()
+            elif event.type == KEYDOWN and event.key == K_BACKSPACE:
                 current_word = current_word[:-1]
-                color = RED
-            check_word()
+                check_word()
+            elif event.type == KEYDOWN and event.key == K_RETURN:
+                message = ''
+                if len(current_word) == 0:
+                    continue
+                check_word()
+                if current_word in already_seen_words:
+                    message = "You've already used that word..."
+                    render()
+                    continue
+                if current_word not in wordlist:
+                    message = "I don't know that word..."
+                    render()
+                    continue
+                already_seen_words.append(current_word)
+                required_start = current_word[-1]
+                current_word = ''
+                render()
+            elif event.type == KEYDOWN:
+                if not event.unicode.isalpha():
+                    continue
+                current_word = (current_word + event.unicode).upper()
+                if not current_word.startswith(required_start):
+                    current_word = current_word[:-1]
+                    color = RED
+                check_word()
+
+
+if __name__ == '__main__':
+    main()
