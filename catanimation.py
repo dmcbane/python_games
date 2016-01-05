@@ -2,47 +2,52 @@ import pygame
 import sys
 from pygame.locals import QUIT
 
-pygame.init()
 
-FPS = 30  # frames per second setting
-fpsClock = pygame.time.Clock()
+def main():
+    pygame.init()
 
-# set up the window
-DISPLAYSURF = pygame.display.set_mode((400, 300), 0, 32)
-pygame.display.set_caption('Animation')
+    FPS = 30  # frames per second setting
+    fpsClock = pygame.time.Clock()
 
-WHITE = (255, 255, 255)
-catImg = pygame.image.load('cat.png')
-catx = 10
-caty = 10
-direction = 'right'
+    # set up the window
+    DISPLAYSURF = pygame.display.set_mode((400, 300), 0, 32)
+    pygame.display.set_caption('Animation')
 
-while True:  # the main game loop
-    DISPLAYSURF.fill(WHITE)
+    WHITE = (255, 255, 255)
+    catImg = pygame.image.load('cat.png')
+    catx = 10
+    caty = 10
+    direction = 'right'
 
-    if direction == 'right':
-        catx += 5
-        if catx == 280:
-            direction = 'down'
-    elif direction == 'down':
-        caty += 5
-        if caty == 220:
-            direction = 'left'
-    elif direction == 'left':
-        catx -= 5
-        if catx == 10:
-            direction = 'up'
-    elif direction == 'up':
-        caty -= 5
-        if caty == 10:
-            direction = 'right'
+    while True:  # the main game loop
+        DISPLAYSURF.fill(WHITE)
 
-    DISPLAYSURF.blit(catImg, (catx, caty))
+        if direction == 'right':
+            catx += 5
+            if catx == 280:
+                direction = 'down'
+        elif direction == 'down':
+            caty += 5
+            if caty == 220:
+                direction = 'left'
+        elif direction == 'left':
+            catx -= 5
+            if catx == 10:
+                direction = 'up'
+        elif direction == 'up':
+            caty -= 5
+            if caty == 10:
+                direction = 'right'
 
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+        DISPLAYSURF.blit(catImg, (catx, caty))
 
-    pygame.display.update()
-    fpsClock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+        pygame.display.update()
+        fpsClock.tick(FPS)
+
+if __name__ == '__main__':
+    main()
