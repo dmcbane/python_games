@@ -8,7 +8,7 @@ import sys
 import webbrowser
 import copy
 import pygame
-from pygame.locals import QUIT, KEYUP, K_ESCAPE, MOUSEBUTTONUP
+from pygame.locals import (QUIT, KEYUP, K_ESCAPE, MOUSEBUTTONUP, KEYDOWN)
 
 # There are different box sizes, number of boxes, and
 # life depending on the "board size" setting selected.
@@ -121,8 +121,9 @@ def main():
                     # clicked on Settings button
                     resetGame = showSettingsScreen()
                 elif (pygame.Rect(WINDOWWIDTH-RESETBUTTONIMAGE.get_width(),
-                                  WINDOWHEIGHT-SETTINGSBUTTONIMAGE.get_height()
-                                  - RESETBUTTONIMAGE.get_height(),
+                                  WINDOWHEIGHT -
+                                  SETTINGSBUTTONIMAGE.get_height() -
+                                  RESETBUTTONIMAGE.get_height(),
                                   RESETBUTTONIMAGE.get_width(),
                                   RESETBUTTONIMAGE.get_height())
                         .collidepoint(mousex, mousey)):
