@@ -3,20 +3,24 @@
 # http://inventwithpython.com/pygame
 # Released under a "Simplified BSD" license
 
-import random, copy, sys, pygame
-from pygame.locals import *
+import random
+import copy
+import sys
+import pygame
+from pygame.locals import (QUIT, KEYUP, K_ESCAPE, MOUSEBUTTONUP,
+                           MOUSEBUTTONDOWN, MOUSEMOTION)
 
 BOARDWIDTH = 7  # how many spaces wide the board is
-BOARDHEIGHT = 6 # how many spaces tall the board is
+BOARDHEIGHT = 6  # how many spaces tall the board is
 assert BOARDWIDTH >= 4 and BOARDHEIGHT >= 4, 'Board must be at least 4x4.'
 
-DIFFICULTY = 2 # how many moves to look ahead. (>2 is usually too much)
+DIFFICULTY = 2  # how many moves to look ahead. (>2 is usually too much)
 
-SPACESIZE = 50 # size of the tokens and individual board spaces in pixels
+SPACESIZE = 50  # size of the tokens and individual board spaces in pixels
 
-FPS = 30 # frames per second to update the screen
-WINDOWWIDTH = 640 # width of the program's window, in pixels
-WINDOWHEIGHT = 480 # height in pixels
+FPS = 30  # frames per second to update the screen
+WINDOWWIDTH = 640  # width of the program's window, in pixels
+WINDOWHEIGHT = 480  # height in pixels
 
 XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * SPACESIZE) / 2)
 YMARGIN = int((WINDOWHEIGHT - BOARDHEIGHT * SPACESIZE) / 2)
@@ -44,12 +48,19 @@ def main():
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('Four in a Row')
 
-    REDPILERECT = pygame.Rect(int(SPACESIZE / 2), WINDOWHEIGHT - int(3 * SPACESIZE / 2), SPACESIZE, SPACESIZE)
-    BLACKPILERECT = pygame.Rect(WINDOWWIDTH - int(3 * SPACESIZE / 2), WINDOWHEIGHT - int(3 * SPACESIZE / 2), SPACESIZE, SPACESIZE)
+    REDPILERECT = pygame.Rect(
+        int(SPACESIZE / 2),
+        WINDOWHEIGHT - int(3 * SPACESIZE / 2),
+        SPACESIZE, SPACESIZE)
+    BLACKPILERECT = pygame.Rect(WINDOWWIDTH - int(3 * SPACESIZE / 2),
+                                WINDOWHEIGHT - int(3 * SPACESIZE / 2),
+                                SPACESIZE, SPACESIZE)
     REDTOKENIMG = pygame.image.load('4row_red.png')
-    REDTOKENIMG = pygame.transform.smoothscale(REDTOKENIMG, (SPACESIZE, SPACESIZE))
+    REDTOKENIMG = pygame.transform.smoothscale(
+        REDTOKENIMG, (SPACESIZE, SPACESIZE))
     BLACKTOKENIMG = pygame.image.load('4row_black.png')
-    BLACKTOKENIMG = pygame.transform.smoothscale(BLACKTOKENIMG, (SPACESIZE, SPACESIZE))
+    BLACKTOKENIMG = pygame.transform.smoothscale(
+        BLACKTOKENIMG, (SPACESIZE, SPACESIZE))
     BOARDIMG = pygame.image.load('4row_board.png')
     BOARDIMG = pygame.transform.smoothscale(BOARDIMG, (SPACESIZE, SPACESIZE))
 
@@ -88,7 +99,7 @@ def runGame(isFirstGame):
     # Set up a blank board data structure.
     mainBoard = getNewBoard()
 
-    while True: # main game loop
+    while True:  # main game loop
         if turn == HUMAN:
             # Human player's turn.
             getHumanMove(mainBoard, showHelp)
@@ -98,7 +109,7 @@ def runGame(isFirstGame):
             if isWinner(mainBoard, RED):
                 winnerImg = HUMANWINNERIMG
                 break
-            turn = COMPUTER # switch to other player's turn
+            turn = COMPUTER  # switch to other player's turn
         else:
             # Computer player's turn.
             column = getComputerMove(mainBoard)
@@ -107,7 +118,7 @@ def runGame(isFirstGame):
             if isWinner(mainBoard, BLACK):
                 winnerImg = COMPUTERWINNERIMG
                 break
-            turn = HUMAN # switch to other player's turn
+            turn = HUMAN  # switch to other player's turn
 
         if isBoardFull(mainBoard):
             # A completely filled board means it's a tie.
@@ -120,8 +131,9 @@ def runGame(isFirstGame):
         DISPLAYSURF.blit(winnerImg, WINNERRECT)
         pygame.display.update()
         FPSCLOCK.tick()
-        for event in pygame.event.get(): # event handling loop
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+        for event in pygame.event.get():  # event handling loop
+            if (event.type == QUIT or
+                    (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
                 sys.exit()
             elif event.type == MOUSEBUTTONUP:
@@ -141,28 +153,32 @@ def drawBoard(board, extraToken=None):
     spaceRect = pygame.Rect(0, 0, SPACESIZE, SPACESIZE)
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
-            spaceRect.topleft = (XMARGIN + (x * SPACESIZE), YMARGIN + (y * SPACESIZE))
+            spaceRect.topleft = (XMARGIN + (x * SPACESIZE),
+                                 YMARGIN + (y * SPACESIZE))
             if board[x][y] == RED:
                 DISPLAYSURF.blit(REDTOKENIMG, spaceRect)
             elif board[x][y] == BLACK:
                 DISPLAYSURF.blit(BLACKTOKENIMG, spaceRect)
 
     # draw the extra token
-    if extraToken != None:
+    if extraToken is not None:
         if extraToken['color'] == RED:
-            DISPLAYSURF.blit(REDTOKENIMG, (extraToken['x'], extraToken['y'], SPACESIZE, SPACESIZE))
+            DISPLAYSURF.blit(REDTOKENIMG, (extraToken['x'], extraToken[
+                             'y'], SPACESIZE, SPACESIZE))
         elif extraToken['color'] == BLACK:
-            DISPLAYSURF.blit(BLACKTOKENIMG, (extraToken['x'], extraToken['y'], SPACESIZE, SPACESIZE))
+            DISPLAYSURF.blit(BLACKTOKENIMG, (extraToken['x'], extraToken[
+                             'y'], SPACESIZE, SPACESIZE))
 
     # draw board over the tokens
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
-            spaceRect.topleft = (XMARGIN + (x * SPACESIZE), YMARGIN + (y * SPACESIZE))
+            spaceRect.topleft = (XMARGIN + (x * SPACESIZE),
+                                 YMARGIN + (y * SPACESIZE))
             DISPLAYSURF.blit(BOARDIMG, spaceRect)
 
     # draw the red and black tokens off to the side
-    DISPLAYSURF.blit(REDTOKENIMG, REDPILERECT) # red on the left
-    DISPLAYSURF.blit(BLACKTOKENIMG, BLACKPILERECT) # black on the right
+    DISPLAYSURF.blit(REDTOKENIMG, REDPILERECT)  # red on the left
+    DISPLAYSURF.blit(BLACKTOKENIMG, BLACKPILERECT)  # black on the right
 
 
 def getNewBoard():
@@ -176,11 +192,12 @@ def getHumanMove(board, isFirstMove):
     draggingToken = False
     tokenx, tokeny = None, None
     while True:
-        for event in pygame.event.get(): # event handling loop
+        for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == MOUSEBUTTONDOWN and not draggingToken and REDPILERECT.collidepoint(event.pos):
+            elif (event.type == MOUSEBUTTONDOWN and not draggingToken and
+                  REDPILERECT.collidepoint(event.pos)):
                 # start of dragging on red token pile.
                 draggingToken = True
                 tokenx, tokeny = event.pos
@@ -189,7 +206,8 @@ def getHumanMove(board, isFirstMove):
                 tokenx, tokeny = event.pos
             elif event.type == MOUSEBUTTONUP and draggingToken:
                 # let go of the token being dragged
-                if tokeny < YMARGIN and tokenx > XMARGIN and tokenx < WINDOWWIDTH - XMARGIN:
+                if (tokeny < YMARGIN and tokenx > XMARGIN and
+                        tokenx < WINDOWWIDTH - XMARGIN):
                     # let go at the top of the screen.
                     column = int((tokenx - XMARGIN) / SPACESIZE)
                     if isValidMove(board, column):
@@ -200,8 +218,9 @@ def getHumanMove(board, isFirstMove):
                         return
                 tokenx, tokeny = None, None
                 draggingToken = False
-        if tokenx != None and tokeny != None:
-            drawBoard(board, {'x':tokenx - int(SPACESIZE / 2), 'y':tokeny - int(SPACESIZE / 2), 'color':RED})
+        if tokenx is not None and tokeny is not None:
+            drawBoard(board, {'x': tokenx - int(SPACESIZE / 2),
+                              'y': tokeny - int(SPACESIZE / 2), 'color': RED})
         else:
             drawBoard(board)
 
@@ -225,7 +244,7 @@ def animateDroppingToken(board, column, color):
         dropSpeed += 0.5
         if int((y - YMARGIN) / SPACESIZE) >= lowestEmptySpace:
             return
-        drawBoard(board, {'x':x, 'y':y, 'color':color})
+        drawBoard(board, {'x': x, 'y': y, 'color': color})
         pygame.display.update()
         FPSCLOCK.tick()
 
@@ -238,7 +257,7 @@ def animateComputerMoving(board, column):
     while y > (YMARGIN - SPACESIZE):
         y -= int(speed)
         speed += 0.5
-        drawBoard(board, {'x':x, 'y':y, 'color':BLACK})
+        drawBoard(board, {'x': x, 'y': y, 'color': BLACK})
         pygame.display.update()
         FPSCLOCK.tick()
     # moving the black tile over
@@ -247,7 +266,7 @@ def animateComputerMoving(board, column):
     while x > (XMARGIN + column * SPACESIZE):
         x -= int(speed)
         speed += 0.5
-        drawBoard(board, {'x':x, 'y':y, 'color':BLACK})
+        drawBoard(board, {'x': x, 'y': y, 'color': BLACK})
         pygame.display.update()
         FPSCLOCK.tick()
     # dropping the black tile
@@ -288,7 +307,7 @@ def getPotentialMoves(board, tile, lookAhead):
         if isWinner(dupeBoard, tile):
             # a winning move automatically gets a perfect fitness
             potentialMoves[firstMove] = 1
-            break # don't bother calculating other moves
+            break  # don't bother calculating other moves
         else:
             # do other player's counter moves and determine best one
             if isBoardFull(dupeBoard):
@@ -305,14 +324,16 @@ def getPotentialMoves(board, tile, lookAhead):
                         break
                     else:
                         # do the recursive call to getPotentialMoves()
-                        results = getPotentialMoves(dupeBoard2, tile, lookAhead - 1)
-                        potentialMoves[firstMove] += (sum(results) / BOARDWIDTH) / BOARDWIDTH
+                        results = getPotentialMoves(
+                            dupeBoard2, tile, lookAhead - 1)
+                        potentialMoves[firstMove] += \
+                            (sum(results) / BOARDWIDTH) / BOARDWIDTH
     return potentialMoves
 
 
 def getLowestEmptySpace(board, column):
     # Return the row number of the lowest empty row in the given column.
-    for y in range(BOARDHEIGHT-1, -1, -1):
+    for y in range(BOARDHEIGHT - 1, -1, -1):
         if board[column][y] == EMPTY:
             return y
     return -1
@@ -339,22 +360,34 @@ def isWinner(board, tile):
     # check horizontal spaces
     for x in range(BOARDWIDTH - 3):
         for y in range(BOARDHEIGHT):
-            if board[x][y] == tile and board[x+1][y] == tile and board[x+2][y] == tile and board[x+3][y] == tile:
+            if (board[x][y] == tile and
+                    board[x + 1][y] == tile and
+                    board[x + 2][y] == tile and
+                    board[x + 3][y] == tile):
                 return True
     # check vertical spaces
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT - 3):
-            if board[x][y] == tile and board[x][y+1] == tile and board[x][y+2] == tile and board[x][y+3] == tile:
+            if (board[x][y] == tile and
+                    board[x][y + 1] == tile and
+                    board[x][y + 2] == tile and
+                    board[x][y + 3] == tile):
                 return True
     # check / diagonal spaces
     for x in range(BOARDWIDTH - 3):
         for y in range(3, BOARDHEIGHT):
-            if board[x][y] == tile and board[x+1][y-1] == tile and board[x+2][y-2] == tile and board[x+3][y-3] == tile:
+            if (board[x][y] == tile and
+                    board[x + 1][y - 1] == tile and
+                    board[x + 2][y - 2] == tile and
+                    board[x + 3][y - 3] == tile):
                 return True
     # check \ diagonal spaces
     for x in range(BOARDWIDTH - 3):
         for y in range(BOARDHEIGHT - 3):
-            if board[x][y] == tile and board[x+1][y+1] == tile and board[x+2][y+2] == tile and board[x+3][y+3] == tile:
+            if (board[x][y] == tile and
+                    board[x + 1][y + 1] == tile and
+                    board[x + 2][y + 2] == tile and
+                    board[x + 3][y + 3] == tile):
                 return True
     return False
 

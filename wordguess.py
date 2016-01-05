@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import pygame, sys
-from pygame.locals import *
+import pygame
+import sys
+import os
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_RETURN, K_BACKSPACE
 
 pygame.init()
-screen = pygame.display.set_mode(pygame.display.list_modes()[0], pygame.FULLSCREEN)
-pygame.display.set_caption('Hallo Kinder, das ist das Wortratespiel')
+screen = pygame.display.set_mode(
+    pygame.display.list_modes()[0], pygame.FULLSCREEN)
 
-with open('/usr/share/dict/ngerman') as f:
-    germandict = f.read().splitlines()
+pygame.display.set_caption("Hi kids, this is the word guessing game")
 
-germandict = set(map(str.upper, germandict))
+# filename = '/usr/share/dict/ngerman'
+filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        'samplewords')
+
+with open(filename) as f:
+    wordlist = f.read().splitlines()
+
+wordlist = set(map(str.upper, wordlist))
 
 RED = (250, 0, 0)
 BLACK = (10, 10, 10)
@@ -28,12 +36,14 @@ color = BLACK
 
 already_seen_words = []
 
-def render_text(word, col, ypos = 0, xpos = None):
+
+def render_text(word, col, ypos=0, xpos=None):
     font = pygame.font.Font(None, 36)
     text = font.render(word, 1, col)
-    centerx = background.get_width() / 2 if xpos == None else xpos
-    textpos = text.get_rect(centerx = centerx, centery = 18 + ypos * 36)
+    centerx = background.get_width() / 2 if xpos is None else xpos
+    textpos = text.get_rect(centerx=centerx, centery=18 + ypos * 36)
     background.blit(text, textpos)
+
 
 def render():
     background.fill((250, 250, 250))
@@ -43,35 +53,38 @@ def render():
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
+
 def render_words_so_far():
     length = len(already_seen_words)
-    text = 'Noch kein Wort...' if length == 0 else 'Schon ' + str(length)
+    text = 'Not a word...' if length == 0 else 'Nice ' + str(length)
     if length > 0:
-        text += u' Wort' if length == 1 else u' Wörter'
+        text += ' Word' if length == 1 else ' Words'
     render_text(text, GREEN, 1)
     cnt = 2
     for word in reversed(already_seen_words):
         render_text(word, GREEN, cnt)
         cnt = cnt + 1
 
-current_word = 'Bitte ein Anfangswort eingeben'
+current_word = 'Please enter a start word'
 render()
 current_word = ''
+
 
 def quit():
     pygame.quit()
     sys.exit()
 
+
 def check_word():
     global color, message
-    color = RED if not current_word in germandict else BLACK
+    color = RED if current_word not in wordlist else BLACK
     if current_word in already_seen_words:
         color = RED
     message = ''
-    if current_word not in germandict:
-        message = 'Das Wort kenn ich nicht...'
+    if current_word not in wordlist:
+        message = "I don't know that word..."
     if current_word in already_seen_words:
-        message = 'Das Wort gab es schonmal...'
+        message = "You've already used that word..."
     render()
 
 while True:
@@ -90,11 +103,11 @@ while True:
                 continue
             check_word()
             if current_word in already_seen_words:
-                message = 'Das Wort gab es schonmal...'
+                message = "You've already used that word..."
                 render()
                 continue
-            if current_word not in germandict:
-                message = 'Das Wort kenn ich nicht...'
+            if current_word not in wordlist:
+                message = "I don't know that word..."
                 render()
                 continue
             already_seen_words.append(current_word)

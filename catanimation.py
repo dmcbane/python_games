@@ -1,9 +1,10 @@
-import pygame, sys
-from pygame.locals import *
+import pygame
+import sys
+from pygame.locals import QUIT
 
 pygame.init()
 
-FPS = 30 # frames per second setting
+FPS = 30  # frames per second setting
 fpsClock = pygame.time.Clock()
 
 # set up the window
@@ -16,7 +17,7 @@ catx = 10
 caty = 10
 direction = 'right'
 
-while True: # the main game loop
+while True:  # the main game loop
     DISPLAYSURF.fill(WHITE)
 
     if direction == 'right':
