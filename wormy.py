@@ -10,7 +10,6 @@
 #     processor loading from near 100%
 import random
 import pygame
-import sys
 from pygame.locals import (QUIT, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_ESCAPE,
                            K_a, K_d, K_s, K_w, KEYDOWN)
 
@@ -60,7 +59,8 @@ def main():
 
     showStartScreen()
     while True:
-        runGame()
+        if not runGame():
+            return
         showGameOverScreen()
 
 
@@ -89,20 +89,20 @@ def runGame():
         elif user_input == REL_LEFT or user_input == REL_RIGHT:
             direction = changeDirection(direction, user_input)
         elif user_input == WORMY_QUIT:
-            terminate()
+            return False  # quit
 
         # check if the worm has hit the edge
         if (wormCoords[HEAD]['x'] == -1 or
                 wormCoords[HEAD]['x'] == CELLWIDTH or
                 wormCoords[HEAD]['y'] == -1 or
                 wormCoords[HEAD]['y'] == CELLHEIGHT):
-            return  # game over
+            return True  # game over
 
         # check if the worm has hit itself
         for wormBody in wormCoords[1:]:
             if (wormBody['x'] == wormCoords[HEAD]['x'] and
                     wormBody['y'] == wormCoords[HEAD]['y']):
-                return  # game over
+                return True  # game over
 
         # check if worm has eaten an apple
         if (wormCoords[HEAD]['x'] == apple['x'] and
@@ -148,6 +148,7 @@ def getUserInput():
 
     for event in pygame.event.get():  # event handling loop
         if event.type == QUIT:
+            pygame.quit()
             return WORMY_QUIT
         elif event.type == KEYDOWN:
             if (event.key == K_LEFT or event.key == K_a):
@@ -159,6 +160,7 @@ def getUserInput():
             elif (event.key == K_DOWN or event.key == K_s):
                 return DOWN
             elif event.key == K_ESCAPE:
+                pygame.quit()
                 return WORMY_QUIT
             else:
                 return event.key
@@ -194,18 +196,13 @@ def showStartScreen():
         # KRT 14/06/2012 rewrite event detection to deal with mouse use
         user_input = getUserInput()
         if user_input == WORMY_QUIT:
-            terminate()
+            return False
         elif user_input:
-            return
+            return True
         pygame.display.update()
         FPSCLOCK.tick(FPS)
         degrees1 += 3  # rotate by 3 degrees each frame
         degrees2 += 7  # rotate by 7 degrees each frame
-
-
-def terminate():
-    pygame.quit()
-    sys.exit()
 
 
 def getRandomLocation():
@@ -233,9 +230,9 @@ def showGameOverScreen():
     while True:
         user_input = getUserInput()
         if user_input == WORMY_QUIT:
-            terminate()
+            return False
         elif user_input:
-            return
+            return True
         # KRT 12/06/2012 reduce processor loading in gameover screen.
         pygame.time.wait(100)
 
