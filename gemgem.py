@@ -18,7 +18,6 @@ with the following keys:
 import random
 import time
 import pygame
-import sys
 import copy
 from pygame.locals import (QUIT, KEYUP, K_ESCAPE, K_BACKSPACE,
                            MOUSEBUTTONUP, MOUSEBUTTONDOWN)
@@ -112,7 +111,8 @@ def main():
             BOARDRECTS[x].append(r)
 
     while True:
-        runGame()
+        if not runGame():
+            break
 
 
 def runGame():
@@ -138,13 +138,13 @@ def runGame():
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
-                sys.exit()
+                return False
             elif event.type == KEYUP and event.key == K_BACKSPACE:
-                return  # start a new game
+                return True  # start a new game
 
             elif event.type == MOUSEBUTTONUP:
                 if gameIsOver:
-                    return  # after games ends, click to start a new game
+                    return True  # after games ends, click to start a new game
 
                 if event.pos == (lastMouseDownX, lastMouseDownY):
                     # This event is a mouse click, not the end of a mouse drag.
