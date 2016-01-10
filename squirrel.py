@@ -4,11 +4,11 @@
 # Released under a "Simplified BSD" license
 
 import random
-import sys
 import time
 import math
 import pygame
-from pygame.locals import *
+from pygame.locals import (QUIT, KEYDOWN, KEYUP, K_UP, K_DOWN, K_LEFT, K_RIGHT,
+                           K_w, K_s, K_a, K_d, K_r, K_ESCAPE)
 
 FPS = 30  # frames per second to update the screen
 WINWIDTH = 640  # width of the program's window, in pixels
@@ -20,53 +20,72 @@ GRASSCOLOR = (24, 255, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
-CAMERASLACK = 90     # how far from the center the squirrel moves before moving the camera
-MOVERATE = 9         # how fast the player moves
-BOUNCERATE = 6       # how fast the player bounces (large is slower)
-BOUNCEHEIGHT = 30    # how high the player bounces
-STARTSIZE = 25       # how big the player starts off
-WINSIZE = 300        # how big the player needs to be to win
-INVULNTIME = 2       # how long the player is invulnerable after being hit in seconds
-GAMEOVERTIME = 4     # how long the "game over" text stays on the screen in seconds
-MAXHEALTH = 3        # how much health the player starts with
+CAMERASLACK = 90  # how far from center the squirrel moves before moving camera
+MOVERATE = 9      # how fast the player moves
+BOUNCERATE = 6    # how fast the player bounces (large is slower)
+BOUNCEHEIGHT = 30  # how high the player bounces
+STARTSIZE = 25    # how big the player starts off
+WINSIZE = 300     # how big the player needs to be to win
+INVULNTIME = 2    # how long player is invulnerable after being hit in seconds
+GAMEOVERTIME = 4  # how long "game over" text stays on screen in seconds
+MAXHEALTH = 3     # how much health the player starts with
 
-NUMGRASS = 80        # number of grass objects in the active area
-NUMSQUIRRELS = 30    # number of squirrels in the active area
+NUMGRASS = 80     # number of grass objects in the active area
+NUMSQUIRRELS = 30  # number of squirrels in the active area
 SQUIRRELMINSPEED = 3  # slowest squirrel speed
 SQUIRRELMAXSPEED = 7  # fastest squirrel speed
-DIRCHANGEFREQ = 2    # % chance of direction change per frame
+DIRCHANGEFREQ = 2  # % chance of direction change per frame
 LEFT = 'left'
 RIGHT = 'right'
 
 """
-This program has three data structures to represent the player, enemy squirrels, and grass background objects. The data structures are dictionaries with the following keys:
+This program has three data structures to represent the player, enemy
+squirrels, and grass background objects. The data structures are dictionaries
+with the following keys:
 
 Keys used by all three data structures:
-    'x' - the left edge coordinate of the object in the game world (not a pixel coordinate on the screen)
-    'y' - the top edge coordinate of the object in the game world (not a pixel coordinate on the screen)
-    'rect' - the pygame.Rect object representing where on the screen the object is located.
+    'x' - the left edge coordinate of the object in the game world (not a
+          pixel coordinate on the screen)
+    'y' - the top edge coordinate of the object in the game world (not a
+          pixel coordinate on the screen)
+    'rect' - the pygame.Rect object representing where on the screen the
+             object is located.
 Player data structure keys:
-    'surface' - the pygame.Surface object that stores the image of the squirrel which will be drawn to the screen.
-    'facing' - either set to LEFT or RIGHT, stores which direction the player is facing.
-    'size' - the width and height of the player in pixels. (The width & height are always the same.)
-    'bounce' - represents at what point in a bounce the player is in. 0 means standing (no bounce), up to BOUNCERATE (the completion of the bounce)
-    'health' - an integer showing how many more times the player can be hit by a larger squirrel before dying.
+    'surface' - the pygame.Surface object that stores the image of the
+                squirrel which will be drawn to the screen.
+    'facing' - either set to LEFT or RIGHT, stores which direction the
+               player is facing.
+    'size' - the width and height of the player in pixels. (The width &
+             height are always the same.)
+    'bounce' - represents at what point in a bounce the player is in.
+               0 means standing (no bounce), up to BOUNCERATE (the
+               completion of the bounce)
+    'health' - an integer showing how many more times the player can be
+               hit by a larger squirrel before dying.
 Enemy Squirrel data structure keys:
-    'surface' - the pygame.Surface object that stores the image of the squirrel which will be drawn to the screen.
-    'movex' - how many pixels per frame the squirrel moves horizontally. A negative integer is moving to the left, a positive to the right.
-    'movey' - how many pixels per frame the squirrel moves vertically. A negative integer is moving up, a positive moving down.
+    'surface' - the pygame.Surface object that stores the image of the
+                squirrel which will be drawn to the screen.
+    'movex' - how many pixels per frame the squirrel moves horizontally. A
+              negative integer is moving to the left, a positive to the right.
+    'movey' - how many pixels per frame the squirrel moves vertically. A
+              negative integer is moving up, a positive moving down.
     'width' - the width of the squirrel's image, in pixels
     'height' - the height of the squirrel's image, in pixels
-    'bounce' - represents at what point in a bounce the player is in. 0 means standing (no bounce), up to BOUNCERATE (the completion of the bounce)
-    'bouncerate' - how quickly the squirrel bounces. A lower number means a quicker bounce.
+    'bounce' - represents at what point in a bounce the player is in.
+               0 means standing (no bounce), up to BOUNCERATE (the
+               completion of the bounce)
+    'bouncerate' - how quickly the squirrel bounces. A lower number means a
+                   quicker bounce.
     'bounceheight' - how high (in pixels) the squirrel bounces
 Grass data structure keys:
-    'grassImage' - an integer that refers to the index of the pygame.Surface object in GRASSIMAGES used for this grass object
+    'grassImage' - an integer that refers to the index of the pygame.
+                   Surface object in GRASSIMAGES used for this grass object
 """
 
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, L_SQUIR_IMG, R_SQUIR_IMG, GRASSIMAGES
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, L_SQUIR_IMG, R_SQUIR_IMG, \
+        GRASSIMAGES
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
@@ -83,7 +102,8 @@ def main():
         GRASSIMAGES.append(pygame.image.load('grass%s.png' % i))
 
     while True:
-        runGame()
+        if not runGame():
+            break
 
 
 def runGame():
@@ -115,7 +135,8 @@ def runGame():
     grassObjs = []    # stores all the grass objects in the game
     squirrelObjs = []  # stores all the non-player squirrel objects
     # stores the player object:
-    playerObj = {'surface': pygame.transform.scale(L_SQUIR_IMG, (STARTSIZE, STARTSIZE)),
+    playerObj = {'surface': pygame.transform.scale(L_SQUIR_IMG,
+                                                   (STARTSIZE, STARTSIZE)),
                  'facing': LEFT,
                  'size': STARTSIZE,
                  'x': HALF_WINWIDTH,
@@ -136,7 +157,8 @@ def runGame():
 
     while True:  # main game loop
         # Check if we should turn off invulnerability
-        if invulnerableMode and time.time() - invulnerableStartTime > INVULNTIME:
+        if (invulnerableMode and
+                time.time() - invulnerableStartTime > INVULNTIME):
             invulnerableMode = False
 
         # move all the squirrels
@@ -208,11 +230,13 @@ def runGame():
         # draw the player squirrel
         flashIsOn = round(time.time(), 1) * 10 % 2 == 1
         if not gameOverMode and not (invulnerableMode and flashIsOn):
-            playerObj['rect'] = pygame.Rect((playerObj['x'] - camerax,
-                                             playerObj[
-                'y'] - cameray - getBounceAmount(playerObj['bounce'], BOUNCERATE, BOUNCEHEIGHT),
-                playerObj['size'],
-                playerObj['size']))
+            playerObj['rect'] = \
+                pygame.Rect((playerObj['x'] - camerax,
+                             playerObj['y'] - cameray -
+                             getBounceAmount(playerObj['bounce'],
+                                             BOUNCERATE, BOUNCEHEIGHT),
+                             playerObj['size'],
+                             playerObj['size']))
             DISPLAYSURF.blit(playerObj['surface'], playerObj['rect'])
 
         # draw the health meter
@@ -220,7 +244,8 @@ def runGame():
 
         for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
-                terminate()
+                pygame.quit()
+                return False
 
             elif event.type == KEYDOWN:
                 if event.key in (K_UP, K_w):
@@ -244,7 +269,7 @@ def runGame():
                             R_SQUIR_IMG, (playerObj['size'], playerObj['size']))
                     playerObj['facing'] = RIGHT
                 elif winMode and event.key == K_r:
-                    return
+                    return True
 
             elif event.type == KEYUP:
                 # stop moving the player's squirrel
@@ -258,7 +283,8 @@ def runGame():
                     moveDown = False
 
                 elif event.key == K_ESCAPE:
-                    terminate()
+                    pygame.quit()
+                    return False
 
         if not gameOverMode:
             # actually move the player
@@ -271,7 +297,8 @@ def runGame():
             if moveDown:
                 playerObj['y'] += MOVERATE
 
-            if (moveLeft or moveRight or moveUp or moveDown) or playerObj['bounce'] != 0:
+            if ((moveLeft or moveRight or moveUp or moveDown) or
+                    playerObj['bounce'] != 0):
                 playerObj['bounce'] += 1
 
             if playerObj['bounce'] > BOUNCERATE:
@@ -280,21 +307,26 @@ def runGame():
             # check if the player has collided with any squirrels
             for i in range(len(squirrelObjs) - 1, -1, -1):
                 sqObj = squirrelObjs[i]
-                if 'rect' in sqObj and playerObj['rect'].colliderect(sqObj['rect']):
+                if ('rect' in sqObj and
+                        playerObj['rect'].colliderect(sqObj['rect'])):
                     # a player/squirrel collision has occurred
 
                     if sqObj['width'] * sqObj['height'] <= playerObj['size']**2:
                         # player is larger and eats the squirrel
-                        playerObj[
-                            'size'] += int((sqObj['width'] * sqObj['height'])**0.2) + 1
+                        playerObj['size'] += int((sqObj['width'] *
+                                                  sqObj['height'])**0.2) + 1
                         del squirrelObjs[i]
 
                         if playerObj['facing'] == LEFT:
-                            playerObj['surface'] = pygame.transform.scale(
-                                L_SQUIR_IMG, (playerObj['size'], playerObj['size']))
+                            playerObj['surface'] = \
+                                pygame.transform.scale(L_SQUIR_IMG,
+                                                       (playerObj['size'],
+                                                        playerObj['size']))
                         if playerObj['facing'] == RIGHT:
-                            playerObj['surface'] = pygame.transform.scale(
-                                R_SQUIR_IMG, (playerObj['size'], playerObj['size']))
+                            playerObj['surface'] = \
+                                pygame.transform.scale(R_SQUIR_IMG,
+                                                       (playerObj['size'],
+                                                        playerObj['size']))
 
                         if playerObj['size'] > WINSIZE:
                             winMode = True  # turn on "win mode"
@@ -311,7 +343,7 @@ def runGame():
             # game is over, show "game over" text
             DISPLAYSURF.blit(gameOverSurf, gameOverRect)
             if time.time() - gameOverStartTime > GAMEOVERTIME:
-                return  # end the current game
+                return True  # end the current game
 
         # check if the player has won.
         if winMode:
@@ -324,16 +356,11 @@ def runGame():
 
 def drawHealthMeter(currentHealth):
     for i in range(currentHealth):  # draw red health bars
-        pygame.draw.rect(DISPLAYSURF, RED,   (15, 5 +
-                                              (10 * MAXHEALTH) - i * 10, 20, 10))
+        pygame.draw.rect(DISPLAYSURF, RED,
+                         (15, 5 + (10 * MAXHEALTH) - i * 10, 20, 10))
     for i in range(MAXHEALTH):  # draw the white outlines
         pygame.draw.rect(DISPLAYSURF, WHITE,
                          (15, 5 + (10 * MAXHEALTH) - i * 10, 20, 10), 1)
-
-
-def terminate():
-    pygame.quit()
-    sys.exit()
 
 
 def getBounceAmount(currentBounce, bounceRate, bounceHeight):
@@ -341,7 +368,8 @@ def getBounceAmount(currentBounce, bounceRate, bounceHeight):
     # Larger bounceRate means a slower bounce.
     # Larger bounceHeight means a higher bounce.
     # currentBounce will always be less than bounceRate
-    return int(math.sin((math.pi / float(bounceRate)) * currentBounce) * bounceHeight)
+    return int(math.sin((math.pi / float(bounceRate)) *
+                        currentBounce) * bounceHeight)
 
 
 def getRandomVelocity():
