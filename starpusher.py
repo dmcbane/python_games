@@ -4,11 +4,12 @@
 # Released under a "Simplified BSD" license
 
 import random
-import sys
 import copy
 import os
 import pygame
-from pygame.locals import *
+from pygame.locals import (QUIT, KEYDOWN, K_LEFT, K_RIGHT, K_UP, K_DOWN,
+                           K_a, K_d, K_w, K_s, K_n, K_b, K_ESCAPE,
+                           K_BACKSPACE, K_p, KEYUP)
 
 FPS = 30  # frames per second to update the screen
 WINWIDTH = 800  # width of the program's window, in pixels
@@ -39,7 +40,8 @@ RIGHT = 'right'
 
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, IMAGESDICT, TILEMAPPING, OUTSIDEDECOMAPPING, BASICFONT, PLAYERIMAGES, currentImage
+    global FPSCLOCK, DISPLAYSURF, IMAGESDICT, TILEMAPPING, \
+        OUTSIDEDECOMAPPING, BASICFONT, PLAYERIMAGES, currentImage
 
     # Pygame initialization and basic set up of the global variables.
     pygame.init()
@@ -95,7 +97,8 @@ def main():
                     IMAGESDICT['horngirl'],
                     IMAGESDICT['pinkgirl']]
 
-    startScreen()  # show the title screen until the user presses a key
+    if not startScreen():  # show the title screen until the user presses a key
+        return
 
     # Read in the levels from the text file. See the readLevelsFile() for
     # details on the format of this file and how to make your own levels.
@@ -120,6 +123,8 @@ def main():
             if currentLevelIndex < 0:
                 # If there are no previous levels, go to the last one.
                 currentLevelIndex = len(levels) - 1
+        elif result == 'quit':
+            return
         elif result == 'reset':
             pass  # Do nothing. Loop re-calls runLevel() to reset the level
 
@@ -157,7 +162,8 @@ def runLevel(levels, levelNum):
         for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
                 # Player clicked the "X" at the corner of the window.
-                terminate()
+                pygame.quit()
+                return 'quit'
 
             elif event.type == KEYDOWN:
                 # Handle key presses
@@ -187,7 +193,8 @@ def runLevel(levels, levelNum):
                     return 'back'
 
                 elif event.key == K_ESCAPE:
-                    terminate()  # Esc key quits.
+                    pygame.quit()  # Esc key quits.
+                    return 'quit'
                 elif event.key == K_BACKSPACE:
                     return 'reset'  # Reset the level.
                 elif event.key == K_p:
@@ -209,7 +216,7 @@ def runLevel(levels, levelNum):
                 elif event.key == K_s:
                     cameraDown = False
 
-        if playerMoveTo != None and not levelIsComplete:
+        if playerMoveTo is not None and not levelIsComplete:
             # If the player pushed a key to move, make the move
             # (if possible) and push any stars that are pushable.
             moved = makeMove(mapObj, gameStateObj, playerMoveTo)
@@ -306,13 +313,18 @@ def decorateMap(mapObj, startxy):
         for y in range(len(mapObjCopy[0])):
 
             if mapObjCopy[x][y] == '#':
-                if (isWall(mapObjCopy, x, y - 1) and isWall(mapObjCopy, x + 1, y)) or \
-                   (isWall(mapObjCopy, x + 1, y) and isWall(mapObjCopy, x, y + 1)) or \
-                   (isWall(mapObjCopy, x, y + 1) and isWall(mapObjCopy, x - 1, y)) or \
-                   (isWall(mapObjCopy, x - 1, y) and isWall(mapObjCopy, x, y - 1)):
+                if ((isWall(mapObjCopy, x, y - 1) and
+                     isWall(mapObjCopy, x + 1, y)) or
+                   (isWall(mapObjCopy, x + 1, y) and
+                    isWall(mapObjCopy, x, y + 1)) or
+                   (isWall(mapObjCopy, x, y + 1) and
+                    isWall(mapObjCopy, x - 1, y)) or
+                   (isWall(mapObjCopy, x - 1, y) and
+                        isWall(mapObjCopy, x, y - 1))):
                     mapObjCopy[x][y] = 'x'
 
-            elif mapObjCopy[x][y] == ' ' and random.randint(0, 99) < OUTSIDE_DECORATION_PCT:
+            elif (mapObjCopy[x][y] == ' ' and
+                  random.randint(0, 99) < OUTSIDE_DECORATION_PCT):
                 mapObjCopy[x][y] = random.choice(
                     list(OUTSIDEDECOMAPPING.keys()))
 
@@ -371,7 +383,8 @@ def makeMove(mapObj, gameStateObj, playerMoveTo):
     else:
         if (playerx + xOffset, playery + yOffset) in stars:
             # There is a star in the way, see if the player can push it.
-            if not isBlocked(mapObj, gameStateObj, playerx + (xOffset * 2), playery + (yOffset * 2)):
+            if not isBlocked(mapObj, gameStateObj, playerx + (xOffset * 2),
+                             playery + (yOffset * 2)):
                 # Move the star.
                 ind = stars.index((playerx + xOffset, playery + yOffset))
                 stars[ind] = (stars[ind][0] + xOffset, stars[ind][1] + yOffset)
@@ -397,7 +410,8 @@ def startScreen():
     # a time, so we can't use strings with \n newline characters in them.
     # So we will use a list with each line in it.
     instructionText = ['Push the stars over the marks.',
-                       'Arrow keys to move, WASD for camera control, P to change character.',
+                       'Arrow keys to move, WASD for camera control, ' +
+                       'P to change character.',
                        'Backspace to reset level, Esc to quit.',
                        'N for next level, B to go back a level.']
 
@@ -420,11 +434,13 @@ def startScreen():
     while True:  # Main loop for the start screen.
         for event in pygame.event.get():
             if event.type == QUIT:
-                terminate()
+                pygame.quit()
+                return False
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                    terminate()
-                return  # user has pressed a key, so return.
+                    pygame.quit()
+                    return False
+                return True  # user has pressed a key, so return.
 
         # Display the DISPLAYSURF contents to the actual screen.
         pygame.display.update()
@@ -495,11 +511,15 @@ def readLevelsFile(filename):
                         stars.append((x, y))
 
             # Basic level design sanity checks:
-            assert startx != None and starty != None, 'Level %s (around line %s) in %s is missing a "@" or "+" to mark the start point.' % (
-                levelNum + 1, lineNum, filename)
-            assert len(goals) > 0, 'Level %s (around line %s) in %s must have at least one goal.' % (
-                levelNum + 1, lineNum, filename)
-            assert len(stars) >= len(goals), 'Level %s (around line %s) in %s is impossible to solve. It has %s goals but only %s stars.' % (
+            assert startx is not None and starty is not None, \
+                'Level %s (around line %s) in %s is missing a "@" or "+" \
+                to mark the start point.' % (levelNum + 1, lineNum, filename)
+            assert len(goals) > 0, \
+                'Level %s (around line %s) in %s must have at least one \
+                goal.' % (levelNum + 1, lineNum, filename)
+            assert len(stars) >= len(goals), \
+                'Level %s (around line %s) in %s is impossible to solve. \
+                It has %s goals but only %s stars.' % (
                 levelNum + 1, lineNum, filename, len(goals), len(stars))
 
             # Create level object and starting game state object.
@@ -600,11 +620,6 @@ def isLevelFinished(levelObj, gameStateObj):
             # Found a space with a goal but no star on it.
             return False
     return True
-
-
-def terminate():
-    pygame.quit()
-    sys.exit()
 
 
 if __name__ == '__main__':
