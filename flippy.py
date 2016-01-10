@@ -8,7 +8,6 @@
 #   http://inventwithpython.com/chapter15.html
 
 import random
-import sys
 import pygame
 import time
 import copy
@@ -71,7 +70,7 @@ def main():
 
     # Run the main game.
     while True:
-        if runGame() is False:
+        if not runGame():
             break
 
 
@@ -87,6 +86,8 @@ def runGame():
     # Draw the starting board and ask the player what color they want.
     drawBoard(mainBoard)
     playerTile, computerTile = enterPlayerTile()
+    if playerTile is False:
+        return False
 
     # Make the Surface and Rect objects for the "New Game" and "Hints" buttons
     newGameSurf = FONT.render('New Game', True, TEXTCOLOR, TEXTBGCOLOR2)
@@ -114,7 +115,8 @@ def runGame():
                 else:
                     boardToDraw = mainBoard
 
-                checkForQuit()
+                if checkForQuit():
+                    return False
                 for event in pygame.event.get():  # event handling loop
                     if event.type == MOUSEBUTTONUP:
                         # Handle mouse click events
@@ -145,7 +147,8 @@ def runGame():
                 pygame.display.update()
 
             # Make the move and end the turn.
-            makeMove(mainBoard, playerTile, movexy[0], movexy[1], True)
+            if not makeMove(mainBoard, playerTile, movexy[0], movexy[1], True):
+                return
             if getValidMoves(mainBoard, computerTile) != []:
                 # Only set for the computer's turn if it can make a move.
                 turn = 'computer'
@@ -172,7 +175,8 @@ def runGame():
 
             # Make the move and end the turn.
             x, y = getComputerMove(mainBoard, computerTile)
-            makeMove(mainBoard, computerTile, x, y, True)
+            if not makeMove(mainBoard, computerTile, x, y, True):
+                return
             if getValidMoves(mainBoard, playerTile) != []:
                 # Only set for the player's turn if they can make a move.
                 turn = 'player'
@@ -213,7 +217,8 @@ def runGame():
 
     while True:
         # Process events until the user clicks on Yes or No.
-        checkForQuit()
+        if checkForQuit():
+            return False
         for event in pygame.event.get():  # event handling loop
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
@@ -266,7 +271,6 @@ def animateTileChange(tilesToFlip, tileColor, additionalTile):
                                (centerx, centery), int(SPACESIZE / 2) - 4)
         pygame.display.update()
         MAINCLOCK.tick(FPS)
-        checkForQuit()
 
 
 def drawBoard(board):
@@ -470,7 +474,8 @@ def enterPlayerTile():
 
     while True:
         # Keep looping until the player has clicked on a color.
-        checkForQuit()
+        if checkForQuit():
+            return [False, False]
         for event in pygame.event.get():  # event handling loop
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
@@ -502,7 +507,11 @@ def makeMove(board, tile, xstart, ystart, realMove=False):
 
     for x, y in tilesToFlip:
         board[x][y] = tile
-    return True
+
+    if checkForQuit():
+        return False
+    else:
+        return True
 
 
 def isOnCorner(x, y):
@@ -543,7 +552,9 @@ def checkForQuit():
         if (event.type == QUIT or
                 (event.type == KEYUP and event.key == K_ESCAPE)):
             pygame.quit()
-            sys.exit()
+            return True
+        else:
+            return False
 
 
 if __name__ == '__main__':

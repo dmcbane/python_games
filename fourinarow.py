@@ -5,7 +5,6 @@
 
 import random
 import copy
-import sys
 import pygame
 from pygame.locals import (QUIT, KEYUP, K_ESCAPE, MOUSEBUTTONUP,
                            MOUSEBUTTONDOWN, MOUSEMOTION)
@@ -78,7 +77,8 @@ def main():
     isFirstGame = True
 
     while True:
-        runGame(isFirstGame)
+        if runGame(isFirstGame):
+            break
         isFirstGame = False
 
 
@@ -102,7 +102,8 @@ def runGame(isFirstGame):
     while True:  # main game loop
         if turn == HUMAN:
             # Human player's turn.
-            getHumanMove(mainBoard, showHelp)
+            if getHumanMove(mainBoard, showHelp):
+                return True
             if showHelp:
                 # turn off help arrow after the first move
                 showHelp = False
@@ -135,9 +136,9 @@ def runGame(isFirstGame):
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
-                sys.exit()
+                return True
             elif event.type == MOUSEBUTTONUP:
-                return
+                return False
 
 
 def makeMove(board, player, column):
@@ -193,9 +194,10 @@ def getHumanMove(board, isFirstMove):
     tokenx, tokeny = None, None
     while True:
         for event in pygame.event.get():  # event handling loop
-            if event.type == QUIT:
+            if (event.type == QUIT or
+                    (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
-                sys.exit()
+                return True
             elif (event.type == MOUSEBUTTONDOWN and not draggingToken and
                   REDPILERECT.collidepoint(event.pos)):
                 # start of dragging on red token pile.
@@ -215,7 +217,7 @@ def getHumanMove(board, isFirstMove):
                         board[column][getLowestEmptySpace(board, column)] = RED
                         drawBoard(board)
                         pygame.display.update()
-                        return
+                        return False
                 tokenx, tokeny = None, None
                 draggingToken = False
         if tokenx is not None and tokeny is not None:
