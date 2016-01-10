@@ -40,6 +40,7 @@ def showGames():
     for fn, desc in games:
         print str(i) + ' - ' + desc
         i += 1
+    print 'q - Quit'
 
 
 def getGame():
@@ -48,7 +49,10 @@ def getGame():
     x = None
     while x is None:
         try:
-            x = int(raw_input('Enter a number: '))
+            raw = raw_input('Enter a number: ')
+            if raw == 'q' or raw == 'Q':
+                return -1
+            x = int(raw)
             if x < 1 or x > len(games):
                 x = None
         except ValueError:
@@ -66,8 +70,12 @@ def runGame(ndx):
 
 
 def launch():
-    showGames()
-    runGame(getGame())
+    while True:
+        showGames()
+        game = getGame()
+        if game < 0:
+            return
+        runGame(game)
 
 
 if __name__ == '__main__':
