@@ -1,6 +1,5 @@
 import pygame
-import sys
-from pygame.locals import QUIT
+from pygame.locals import QUIT, KEYUP, K_ESCAPE
 
 
 def main():
@@ -9,9 +8,10 @@ def main():
     pygame.display.set_caption('Hello Pygame World!')
     while True:  # main game loop
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if (event.type == QUIT or
+                    (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
-                sys.exit()
+                return
 
 if __name__ == '__main__':
     main()
