@@ -4,10 +4,10 @@
 # Released under a "Simplified BSD" license
 
 import random
-import sys
 import time
 import pygame
-from pygame.locals import *
+from pygame.locals import (QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP,
+                           K_a, K_q, K_s, K_w, K_ESCAPE)
 
 FPS = 30
 WINDOWWIDTH = 640
@@ -42,7 +42,8 @@ BLUERECT = pygame.Rect(XMARGIN + BUTTONSIZE + BUTTONGAPSIZE,
 REDRECT = pygame.Rect(XMARGIN, YMARGIN + BUTTONSIZE +
                       BUTTONGAPSIZE, BUTTONSIZE, BUTTONSIZE)
 GREENRECT = pygame.Rect(XMARGIN + BUTTONSIZE + BUTTONGAPSIZE,
-                        YMARGIN + BUTTONSIZE + BUTTONGAPSIZE, BUTTONSIZE, BUTTONSIZE)
+                        YMARGIN + BUTTONSIZE + BUTTONGAPSIZE,
+                        BUTTONSIZE, BUTTONSIZE)
 
 
 def main():
@@ -55,7 +56,8 @@ def main():
 
     BASICFONT = pygame.font.Font('freesansbold.ttf', 16)
     infoSurf = BASICFONT.render(
-        'Match the pattern by clicking on the button or using the Q, W, A, S keys.', 1, DARKGRAY)
+        'Match the pattern by clicking on the button ' +
+        'or using the Q, W, A, S keys.', 1, DARKGRAY)
     infoRect = infoSurf.get_rect()
     infoRect.topleft = (10, WINDOWHEIGHT - 25)
 
@@ -87,7 +89,9 @@ def main():
 
         DISPLAYSURF.blit(infoSurf, infoRect)
 
-        checkForQuit()
+        if checkForQuit():
+            return
+
         for event in pygame.event.get():  # event handling loop
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
@@ -108,51 +112,58 @@ def main():
             pygame.time.wait(1000)
             pattern.append(random.choice((YELLOW, BLUE, RED, GREEN)))
             for button in pattern:
-                flashButtonAnimation(button)
+                if not flashButtonAnimation(button):
+                    return
                 pygame.time.wait(FLASHDELAY)
             waitingForInput = True
         else:
             # wait for the player to enter buttons
             if clickedButton and clickedButton == pattern[currentStep]:
                 # pushed the correct button
-                flashButtonAnimation(clickedButton)
+                if not flashButtonAnimation(clickedButton):
+                    return
                 currentStep += 1
                 lastClickTime = time.time()
 
                 if currentStep == len(pattern):
                     # pushed the last button in the pattern
-                    changeBackgroundAnimation()
+                    if not changeBackgroundAnimation():
+                        return
                     score += 1
                     waitingForInput = False
                     currentStep = 0  # reset back to first step
 
-            elif (clickedButton and clickedButton != pattern[currentStep]) or (currentStep != 0 and time.time() - TIMEOUT > lastClickTime):
+            elif ((clickedButton and
+                  clickedButton != pattern[currentStep]) or
+                  (currentStep != 0 and
+                   time.time() - TIMEOUT > lastClickTime)):
                 # pushed the incorrect button, or has timed out
-                gameOverAnimation()
+                if not gameOverAnimation():
+                    return
                 # reset the variables for a new game:
                 pattern = []
                 currentStep = 0
                 waitingForInput = False
                 score = 0
                 pygame.time.wait(1000)
-                changeBackgroundAnimation()
+                if not changeBackgroundAnimation():
+                    return
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
 
-def terminate():
-    pygame.quit()
-    sys.exit()
-
-
 def checkForQuit():
+    quit = False
     for event in pygame.event.get(QUIT):  # get all the QUIT events
-        terminate()  # terminate if any QUIT events are present
+        quit = True  # terminate if any QUIT events are present
     for event in pygame.event.get(KEYUP):  # get all the KEYUP events
         if event.key == K_ESCAPE:
-            terminate()  # terminate if the KEYUP event was for the Esc key
+            quit = True  # terminate if the KEYUP event was for the Esc key
         pygame.event.post(event)  # put the other KEYUP event objects back
+    if quit:
+        pygame.quit()
+    return quit
 
 
 def flashButtonAnimation(color, animationSpeed=50):
@@ -180,13 +191,15 @@ def flashButtonAnimation(color, animationSpeed=50):
     sound.play()
     for start, end, step in ((0, 255, 1), (255, 0, -1)):  # animation loop
         for alpha in range(start, end, animationSpeed * step):
-            checkForQuit()
+            if checkForQuit():
+                return False
             DISPLAYSURF.blit(origSurf, (0, 0))
             flashSurf.fill((r, g, b, alpha))
             DISPLAYSURF.blit(flashSurf, rectangle.topleft)
             pygame.display.update()
             FPSCLOCK.tick(FPS)
     DISPLAYSURF.blit(origSurf, (0, 0))
+    return True
 
 
 def drawButtons():
@@ -205,7 +218,8 @@ def changeBackgroundAnimation(animationSpeed=40):
     newBgSurf = newBgSurf.convert_alpha()
     r, g, b = newBgColor
     for alpha in range(0, 255, animationSpeed):  # animation loop
-        checkForQuit()
+        if checkForQuit():
+            return False
         DISPLAYSURF.fill(bgColor)
 
         newBgSurf.fill((r, g, b, alpha))
@@ -216,6 +230,7 @@ def changeBackgroundAnimation(animationSpeed=40):
         pygame.display.update()
         FPSCLOCK.tick(FPS)
     bgColor = newBgColor
+    return True
 
 
 def gameOverAnimation(color=WHITE, animationSpeed=50):
@@ -232,15 +247,19 @@ def gameOverAnimation(color=WHITE, animationSpeed=50):
         for start, end, step in ((0, 255, 1), (255, 0, -1)):
             # The first iteration in this loop sets the following for loop
             # to go from 0 to 255, the second from 255 to 0.
-            for alpha in range(start, end, animationSpeed * step):  # animation loop
+            #
+            # animation loop
+            for alpha in range(start, end, animationSpeed * step):
                 # alpha means transparency. 255 is opaque, 0 is invisible
-                checkForQuit()
+                if checkForQuit():
+                    return False
                 flashSurf.fill((r, g, b, alpha))
                 DISPLAYSURF.blit(origSurf, (0, 0))
                 DISPLAYSURF.blit(flashSurf, (0, 0))
                 drawButtons()
                 pygame.display.update()
                 FPSCLOCK.tick(FPS)
+    return True
 
 
 def getButtonClicked(x, y):
