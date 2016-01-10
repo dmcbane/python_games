@@ -4,7 +4,6 @@
 # Released under a "Simplified BSD" license
 
 import random
-import sys
 import webbrowser
 import copy
 import pygame
@@ -109,7 +108,8 @@ def main():
         drawLifeMeter(life)
         drawPalettes()
 
-        checkForQuit()
+        if checkForQuit():
+            return
         for event in pygame.event.get():  # event handling loop
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
@@ -182,12 +182,13 @@ def checkForQuit():
     # Terminates the program if there are any QUIT or escape key events.
     for event in pygame.event.get(QUIT):  # get all the QUIT events
         pygame.quit()  # terminate if any QUIT events are present
-        sys.exit()
+        return True
     for event in pygame.event.get(KEYUP):  # get all the KEYUP events
         if event.key == K_ESCAPE:
             pygame.quit()  # terminate if the KEYUP event was for the Esc key
-            sys.exit()
+            return True
         pygame.event.post(event)  # put the other KEYUP event objects back
+    return False
 
 
 def hasWon(board):
@@ -241,7 +242,7 @@ def showSettingsScreen():
         for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
                 pygame.quit()
-                sys.exit()
+                return True
             elif event.type == KEYUP:
                 if event.key == K_ESCAPE:
                     # Esc key on settings screen goes back to game
