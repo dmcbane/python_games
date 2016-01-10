@@ -1,5 +1,4 @@
 import pygame
-import sys
 from pygame.locals import QUIT
 
 
@@ -44,7 +43,7 @@ def main():
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
-                sys.exit()
+                return True
         pygame.display.update()
 
 if __name__ == '__main__':
