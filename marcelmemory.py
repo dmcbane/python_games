@@ -5,7 +5,6 @@
 
 import random
 import pygame
-import sys
 from pygame.locals import (QUIT, KEYUP, K_ESCAPE, MOUSEMOTION, MOUSEBUTTONUP)
 
 FPS = 30  # frames per second, the general speed of the program
@@ -81,7 +80,7 @@ def main():
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
-                sys.exit()
+                return True
             elif event.type == MOUSEMOTION:
                 mousex, mousey = event.pos
             elif event.type == MOUSEBUTTONUP:
