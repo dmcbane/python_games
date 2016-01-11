@@ -17,6 +17,7 @@ import tetromino
 import tetrominoforidiots
 # import wordguess
 import wormy
+from multiprocessing import Process
 
 games = [[blankpygame.main, "Blank Game Template"],
          [catanimation.main, "Animation Example"],
@@ -66,11 +67,21 @@ def getGame():
     return (x - 1)
 
 
-def runGame(ndx):
+def runGameSameProcess(ndx):
     global games
 
     fn, desc = games[ndx]
     fn()
+
+
+def runGameExternalProcess(ndx):
+    global games
+
+    fn, desc = games[ndx]
+
+    p = Process(target=fn)  # , args=('bob',))
+    p.start()
+    p.join()
 
 
 def launch():
@@ -79,7 +90,7 @@ def launch():
         game = getGame()
         if game < 0:
             return
-        runGame(game)
+        runGameExternalProcess(game)
 
 
 if __name__ == '__main__':
