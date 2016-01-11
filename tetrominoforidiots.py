@@ -61,25 +61,29 @@ PIECES = {'A': SHAPE_TEMPLATE}
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    BIGFONT = pygame.font.Font('freesansbold.ttf', 60)
-    pygame.display.set_caption('Tetromino for Idiots')
 
-    if not showTextScreen('Tetromino for Idiots'):
-        return
-    while True:  # game loop
-        if random.randint(0, 1) == 0:
-            pygame.mixer.music.load('tetrisb.mid')
-        else:
-            pygame.mixer.music.load('tetrisc.mid')
-        pygame.mixer.music.play(-1, 0.0)
-        runGame()
-        pygame.mixer.music.stop()
-        if not showTextScreen('Game Over'):
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+        BIGFONT = pygame.font.Font('freesansbold.ttf', 60)
+        pygame.display.set_caption('Tetromino for Idiots')
+
+        if not showTextScreen('Tetromino for Idiots'):
             return
+        while True:  # game loop
+            if random.randint(0, 1) == 0:
+                pygame.mixer.music.load('tetrisb.mid')
+            else:
+                pygame.mixer.music.load('tetrisc.mid')
+            pygame.mixer.music.play(-1, 0.0)
+            runGame()
+            pygame.mixer.music.stop()
+            if not showTextScreen('Game Over'):
+                return
+    finally:
+        pygame.quit()
 
 
 def runGame():
@@ -230,11 +234,8 @@ def makeTextObjs(text, font, color):
 def checkForKeyPress():
     for event in pygame.event.get():
         if event.type == QUIT:  # event is quit
-            pygame.quit()
             return K_ESCAPE
         elif event.type == KEYDOWN:
-            if event.key == K_ESCAPE:  # event is escape key
-                pygame.quit()
             return event.key  # key found return with it
     # no quit or key events in queue so return None
     return None

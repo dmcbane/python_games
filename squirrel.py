@@ -87,23 +87,26 @@ def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, L_SQUIR_IMG, R_SQUIR_IMG, \
         GRASSIMAGES
 
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    pygame.display.set_icon(pygame.image.load('gameicon.png'))
-    DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
-    pygame.display.set_caption('Squirrel Eat Squirrel')
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 32)
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        pygame.display.set_icon(pygame.image.load('gameicon.png'))
+        DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
+        pygame.display.set_caption('Squirrel Eat Squirrel')
+        BASICFONT = pygame.font.Font('freesansbold.ttf', 32)
 
-    # load the image files
-    L_SQUIR_IMG = pygame.image.load('squirrel.png')
-    R_SQUIR_IMG = pygame.transform.flip(L_SQUIR_IMG, True, False)
-    GRASSIMAGES = []
-    for i in range(1, 5):
-        GRASSIMAGES.append(pygame.image.load('grass%s.png' % i))
+        # load the image files
+        L_SQUIR_IMG = pygame.image.load('squirrel.png')
+        R_SQUIR_IMG = pygame.transform.flip(L_SQUIR_IMG, True, False)
+        GRASSIMAGES = []
+        for i in range(1, 5):
+            GRASSIMAGES.append(pygame.image.load('grass%s.png' % i))
 
-    while True:
-        if not runGame():
-            break
+        while True:
+            if not runGame():
+                break
+    finally:
+        pygame.quit()
 
 
 def runGame():
@@ -244,7 +247,6 @@ def runGame():
 
         for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
-                pygame.quit()
                 return False
 
             elif event.type == KEYDOWN:
@@ -283,7 +285,6 @@ def runGame():
                     moveDown = False
 
                 elif event.key == K_ESCAPE:
-                    pygame.quit()
                     return False
 
         if not gameOverMode:

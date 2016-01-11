@@ -74,45 +74,48 @@ ROWABOVEBOARD = 'row above board'  # an arbitrary, noninteger value
 def main():
     global FPSCLOCK, DISPLAYSURF, GEMIMAGES, GAMESOUNDS, BASICFONT, BOARDRECTS
 
-    # Initial set up.
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode(
-        (WINDOWWIDTH, WINDOWHEIGHT), pygame.FULLSCREEN)
-    pygame.display.set_caption('Gemgem')
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 36)
+    try:
+        # Initial set up.
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode(
+            (WINDOWWIDTH, WINDOWHEIGHT), pygame.FULLSCREEN)
+        pygame.display.set_caption('Gemgem')
+        BASICFONT = pygame.font.Font('freesansbold.ttf', 36)
 
-    # Load the images
-    GEMIMAGES = []
-    for i in range(1, NUMGEMIMAGES + 1):
-        gemImage = pygame.image.load('gem%s.png' % i)
-        if gemImage.get_size() != (GEMIMAGESIZE, GEMIMAGESIZE):
-            gemImage = pygame.transform.smoothscale(
-                gemImage, (GEMIMAGESIZE, GEMIMAGESIZE))
-        GEMIMAGES.append(gemImage)
+        # Load the images
+        GEMIMAGES = []
+        for i in range(1, NUMGEMIMAGES + 1):
+            gemImage = pygame.image.load('gem%s.png' % i)
+            if gemImage.get_size() != (GEMIMAGESIZE, GEMIMAGESIZE):
+                gemImage = pygame.transform.smoothscale(
+                    gemImage, (GEMIMAGESIZE, GEMIMAGESIZE))
+            GEMIMAGES.append(gemImage)
 
-    # Load the sounds.
-    GAMESOUNDS = {}
-    GAMESOUNDS['bad swap'] = pygame.mixer.Sound('badswap.wav')
-    GAMESOUNDS['match'] = []
-    for i in range(NUMMATCHSOUNDS):
-        GAMESOUNDS['match'].append(pygame.mixer.Sound('match%s.wav' % i))
+        # Load the sounds.
+        GAMESOUNDS = {}
+        GAMESOUNDS['bad swap'] = pygame.mixer.Sound('badswap.wav')
+        GAMESOUNDS['match'] = []
+        for i in range(NUMMATCHSOUNDS):
+            GAMESOUNDS['match'].append(pygame.mixer.Sound('match%s.wav' % i))
 
-    # Create pygame.Rect objects for each board space to
-    # do board-coordinate-to-pixel-coordinate conversions.
-    BOARDRECTS = []
-    for x in range(BOARDWIDTH):
-        BOARDRECTS.append([])
-        for y in range(BOARDHEIGHT):
-            r = pygame.Rect((XMARGIN + (x * GEMIMAGESIZE),
-                             YMARGIN + (y * GEMIMAGESIZE),
-                             GEMIMAGESIZE,
-                             GEMIMAGESIZE))
-            BOARDRECTS[x].append(r)
+        # Create pygame.Rect objects for each board space to
+        # do board-coordinate-to-pixel-coordinate conversions.
+        BOARDRECTS = []
+        for x in range(BOARDWIDTH):
+            BOARDRECTS.append([])
+            for y in range(BOARDHEIGHT):
+                r = pygame.Rect((XMARGIN + (x * GEMIMAGESIZE),
+                                 YMARGIN + (y * GEMIMAGESIZE),
+                                 GEMIMAGESIZE,
+                                 GEMIMAGESIZE))
+                BOARDRECTS[x].append(r)
 
-    while True:
-        if not runGame():
-            break
+        while True:
+            if not runGame():
+                break
+    finally:
+        pygame.quit()
 
 
 def runGame():
@@ -137,7 +140,6 @@ def runGame():
         for event in pygame.event.get():  # event handling loop
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
-                pygame.quit()
                 return False
             elif event.type == KEYUP and event.key == K_BACKSPACE:
                 return True  # start a new game

@@ -12,6 +12,7 @@ import random
 import pygame
 from pygame.locals import (QUIT, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_ESCAPE,
                            K_a, K_d, K_s, K_w, KEYDOWN)
+import pdb
 
 # animation constants
 FPS = 15
@@ -45,23 +46,28 @@ HEAD = 0  # syntactic sugar: index of the worm's head
 
 REL_LEFT = 'relative left'
 REL_RIGHT = 'relative right'
-WORMY_QUIT = 'quit'
+APP_QUIT = 'quit'
 
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    pygame.display.set_caption('Wormy')
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+        pygame.display.set_caption('Wormy')
 
-    showStartScreen()
-    while True:
-        if not runGame():
+        if not showStartScreen():
             return
-        showGameOverScreen()
+        while True:
+            if not runGame():
+                return
+            if not showGameOverScreen():
+                return
+    finally:
+        pygame.quit()
 
 
 def runGame():
@@ -78,7 +84,9 @@ def runGame():
 
     while True:  # main game loop
         user_input = getUserInput()
-        if user_input == LEFT and direction != RIGHT:
+        if user_input == APP_QUIT:
+            return False  # quit
+        elif user_input == LEFT and direction != RIGHT:
             direction = LEFT
         elif user_input == RIGHT and direction != LEFT:
             direction = RIGHT
@@ -88,8 +96,6 @@ def runGame():
             direction = DOWN
         elif user_input == REL_LEFT or user_input == REL_RIGHT:
             direction = changeDirection(direction, user_input)
-        elif user_input == WORMY_QUIT:
-            return False  # quit
 
         # check if the worm has hit the edge
         if (wormCoords[HEAD]['x'] == -1 or
@@ -130,6 +136,8 @@ def runGame():
         drawGrid()
         drawWorm(wormCoords)
         drawApple(apple)
+        if len(wormCoords) < 3:
+            pdb.set_trace()
         drawScore(len(wormCoords) - 3)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -144,14 +152,13 @@ def drawPressKeyMsg():
 
 # KRT 14/06/2012 rewrite event detection to deal with mouse use
 def getUserInput():
-    global LBTN_UP, RBTN_UP, PREV_LBTN, PREV_RBTN
-
     for event in pygame.event.get():  # event handling loop
         if event.type == QUIT:
-            pygame.quit()
-            return WORMY_QUIT
+            return APP_QUIT
         elif event.type == KEYDOWN:
-            if (event.key == K_LEFT or event.key == K_a):
+            if event.key == K_ESCAPE:
+                return APP_QUIT
+            elif (event.key == K_LEFT or event.key == K_a):
                 return LEFT
             elif (event.key == K_RIGHT or event.key == K_d):
                 return RIGHT
@@ -159,9 +166,6 @@ def getUserInput():
                 return UP
             elif (event.key == K_DOWN or event.key == K_s):
                 return DOWN
-            elif event.key == K_ESCAPE:
-                pygame.quit()
-                return WORMY_QUIT
             else:
                 return event.key
 
@@ -195,7 +199,7 @@ def showStartScreen():
         drawPressKeyMsg()
         # KRT 14/06/2012 rewrite event detection to deal with mouse use
         user_input = getUserInput()
-        if user_input == WORMY_QUIT:
+        if user_input == APP_QUIT:
             return False
         elif user_input:
             return True
@@ -229,7 +233,7 @@ def showGameOverScreen():
 
     while True:
         user_input = getUserInput()
-        if user_input == WORMY_QUIT:
+        if user_input == APP_QUIT:
             return False
         elif user_input:
             return True

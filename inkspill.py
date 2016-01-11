@@ -79,113 +79,118 @@ def main():
     global FPSCLOCK, DISPLAYSURF, LOGOIMAGE, SPOTIMAGE, SETTINGSIMAGE, \
         SETTINGSBUTTONIMAGE, RESETBUTTONIMAGE
 
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 
-    # Load images
-    LOGOIMAGE = pygame.image.load('inkspilllogo.png')
-    SPOTIMAGE = pygame.image.load('inkspillspot.png')
-    SETTINGSIMAGE = pygame.image.load('inkspillsettings.png')
-    SETTINGSBUTTONIMAGE = pygame.image.load('inkspillsettingsbutton.png')
-    RESETBUTTONIMAGE = pygame.image.load('inkspillresetbutton.png')
+        # Load images
+        LOGOIMAGE = pygame.image.load('inkspilllogo.png')
+        SPOTIMAGE = pygame.image.load('inkspillspot.png')
+        SETTINGSIMAGE = pygame.image.load('inkspillsettings.png')
+        SETTINGSBUTTONIMAGE = pygame.image.load('inkspillsettingsbutton.png')
+        RESETBUTTONIMAGE = pygame.image.load('inkspillresetbutton.png')
 
-    pygame.display.set_caption('Ink Spill')
-    mousex = 0
-    mousey = 0
-    mainBoard = generateRandomBoard(boardWidth, boardHeight, difficulty)
-    life = maxLife
-    lastPaletteClicked = None
+        pygame.display.set_caption('Ink Spill')
+        mousex = 0
+        mousey = 0
+        mainBoard = generateRandomBoard(boardWidth, boardHeight, difficulty)
+        life = maxLife
+        lastPaletteClicked = None
 
-    while True:  # main game loop
-        paletteClicked = None
-        resetGame = False
-
-        # Draw the screen.
-        DISPLAYSURF.fill(bgColor)
-        drawLogoAndButtons()
-        drawBoard(mainBoard)
-        drawLifeMeter(life)
-        drawPalettes()
-
-        if checkForQuit():
-            return
-        for event in pygame.event.get():  # event handling loop
-            if event.type == MOUSEBUTTONUP:
-                mousex, mousey = event.pos
-                if (pygame.Rect(WINDOWWIDTH-SETTINGSBUTTONIMAGE.get_width(),
-                                WINDOWHEIGHT-SETTINGSBUTTONIMAGE.get_height(),
-                                SETTINGSBUTTONIMAGE.get_width(),
-                                SETTINGSBUTTONIMAGE.get_height())
-                        .collidepoint(mousex, mousey)):
-                    # clicked on Settings button
-                    resetGame = showSettingsScreen()
-                elif (pygame.Rect(WINDOWWIDTH-RESETBUTTONIMAGE.get_width(),
-                                  WINDOWHEIGHT -
-                                  SETTINGSBUTTONIMAGE.get_height() -
-                                  RESETBUTTONIMAGE.get_height(),
-                                  RESETBUTTONIMAGE.get_width(),
-                                  RESETBUTTONIMAGE.get_height())
-                        .collidepoint(mousex, mousey)):
-                    resetGame = True  # clicked on Reset button
-                else:
-                    # check if a palette button was clicked
-                    paletteClicked = getColorOfPaletteAt(mousex, mousey)
-            elif event.type == KEYDOWN:
-                # support up to 9 palette keys
-                try:
-                    key = int(event.unicode)
-                except:
-                    key = None
-
-                if key is not None and key > 0 and key <= len(paletteColors):
-                    paletteClicked = key - 1
-
-        if paletteClicked is not None and paletteClicked != lastPaletteClicked:
-            # a palette button was clicked that is different from the
-            # last palette button clicked (this check prevents the player
-            # from accidentally clicking the same palette twice)
-            lastPaletteClicked = paletteClicked
-            floodAnimation(mainBoard, paletteClicked)
-            life -= 1
-
+        while True:  # main game loop
+            paletteClicked = None
             resetGame = False
-            if hasWon(mainBoard):
-                for i in range(4):  # flash border 4 times
-                    flashBorderAnimation(WHITE, mainBoard)
-                resetGame = True
-                # pause so the player can bask in victory
-                pygame.time.wait(2000)
-            elif life == 0:
-                # life is zero, so player has lost
-                drawLifeMeter(0)
-                pygame.display.update()
-                pygame.time.wait(400)
-                for i in range(4):
-                    flashBorderAnimation(BLACK, mainBoard)
-                resetGame = True
-                # pause so the player can suffer in their defeat
-                pygame.time.wait(2000)
 
-        if resetGame:
-            # start a new game
-            mainBoard = generateRandomBoard(
-                boardWidth, boardHeight, difficulty)
-            life = maxLife
-            lastPaletteClicked = None
+            # Draw the screen.
+            DISPLAYSURF.fill(bgColor)
+            drawLogoAndButtons()
+            drawBoard(mainBoard)
+            drawLifeMeter(life)
+            drawPalettes()
 
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
+            if checkForQuit():
+                return
+            for event in pygame.event.get():  # event handling loop
+                if event.type == MOUSEBUTTONUP:
+                    mousex, mousey = event.pos
+                    if (pygame.Rect(WINDOWWIDTH -
+                                    SETTINGSBUTTONIMAGE.get_width(),
+                                    WINDOWHEIGHT -
+                                    SETTINGSBUTTONIMAGE.get_height(),
+                                    SETTINGSBUTTONIMAGE.get_width(),
+                                    SETTINGSBUTTONIMAGE.get_height())
+                            .collidepoint(mousex, mousey)):
+                        # clicked on Settings button
+                        resetGame = showSettingsScreen()
+                    elif (pygame.Rect(WINDOWWIDTH-RESETBUTTONIMAGE.get_width(),
+                                      WINDOWHEIGHT -
+                                      SETTINGSBUTTONIMAGE.get_height() -
+                                      RESETBUTTONIMAGE.get_height(),
+                                      RESETBUTTONIMAGE.get_width(),
+                                      RESETBUTTONIMAGE.get_height())
+                            .collidepoint(mousex, mousey)):
+                        resetGame = True  # clicked on Reset button
+                    else:
+                        # check if a palette button was clicked
+                        paletteClicked = getColorOfPaletteAt(mousex, mousey)
+                elif event.type == KEYDOWN:
+                    # support up to 9 palette keys
+                    try:
+                        key = int(event.unicode)
+                    except:
+                        key = None
+
+                    if (key is not None and key > 0 and
+                            key <= len(paletteColors)):
+                        paletteClicked = key - 1
+
+            if (paletteClicked is not None and
+                    paletteClicked != lastPaletteClicked):
+                # a palette button was clicked that is different from the
+                # last palette button clicked (this check prevents the player
+                # from accidentally clicking the same palette twice)
+                lastPaletteClicked = paletteClicked
+                floodAnimation(mainBoard, paletteClicked)
+                life -= 1
+
+                resetGame = False
+                if hasWon(mainBoard):
+                    for i in range(4):  # flash border 4 times
+                        flashBorderAnimation(WHITE, mainBoard)
+                    resetGame = True
+                    # pause so the player can bask in victory
+                    pygame.time.wait(2000)
+                elif life == 0:
+                    # life is zero, so player has lost
+                    drawLifeMeter(0)
+                    pygame.display.update()
+                    pygame.time.wait(400)
+                    for i in range(4):
+                        flashBorderAnimation(BLACK, mainBoard)
+                    resetGame = True
+                    # pause so the player can suffer in their defeat
+                    pygame.time.wait(2000)
+
+            if resetGame:
+                # start a new game
+                mainBoard = generateRandomBoard(
+                    boardWidth, boardHeight, difficulty)
+                life = maxLife
+                lastPaletteClicked = None
+
+            pygame.display.update()
+            FPSCLOCK.tick(FPS)
+    finally:
+        pygame.quit()
 
 
 def checkForQuit():
     # Terminates the program if there are any QUIT or escape key events.
     for event in pygame.event.get(QUIT):  # get all the QUIT events
-        pygame.quit()  # terminate if any QUIT events are present
         return True
     for event in pygame.event.get(KEYUP):  # get all the KEYUP events
         if event.key == K_ESCAPE:
-            pygame.quit()  # terminate if the KEYUP event was for the Esc key
             return True
         pygame.event.post(event)  # put the other KEYUP event objects back
     return False
@@ -241,7 +246,6 @@ def showSettingsScreen():
         screenNeedsRedraw = False  # by default, don't redraw the screen
         for event in pygame.event.get():  # event handling loop
             if event.type == QUIT:
-                pygame.quit()
                 return True
             elif event.type == KEYUP:
                 if event.key == K_ESCAPE:

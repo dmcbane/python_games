@@ -42,44 +42,48 @@ def main():
     global BLACKTOKENIMG, BOARDIMG, ARROWIMG, ARROWRECT, HUMANWINNERIMG
     global COMPUTERWINNERIMG, WINNERRECT, TIEWINNERIMG
 
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    pygame.display.set_caption('Four in a Row')
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        pygame.display.set_caption('Four in a Row')
 
-    REDPILERECT = pygame.Rect(
-        int(SPACESIZE / 2),
-        WINDOWHEIGHT - int(3 * SPACESIZE / 2),
-        SPACESIZE, SPACESIZE)
-    BLACKPILERECT = pygame.Rect(WINDOWWIDTH - int(3 * SPACESIZE / 2),
-                                WINDOWHEIGHT - int(3 * SPACESIZE / 2),
-                                SPACESIZE, SPACESIZE)
-    REDTOKENIMG = pygame.image.load('4row_red.png')
-    REDTOKENIMG = pygame.transform.smoothscale(
-        REDTOKENIMG, (SPACESIZE, SPACESIZE))
-    BLACKTOKENIMG = pygame.image.load('4row_black.png')
-    BLACKTOKENIMG = pygame.transform.smoothscale(
-        BLACKTOKENIMG, (SPACESIZE, SPACESIZE))
-    BOARDIMG = pygame.image.load('4row_board.png')
-    BOARDIMG = pygame.transform.smoothscale(BOARDIMG, (SPACESIZE, SPACESIZE))
+        REDPILERECT = pygame.Rect(
+            int(SPACESIZE / 2),
+            WINDOWHEIGHT - int(3 * SPACESIZE / 2),
+            SPACESIZE, SPACESIZE)
+        BLACKPILERECT = pygame.Rect(WINDOWWIDTH - int(3 * SPACESIZE / 2),
+                                    WINDOWHEIGHT - int(3 * SPACESIZE / 2),
+                                    SPACESIZE, SPACESIZE)
+        REDTOKENIMG = pygame.image.load('4row_red.png')
+        REDTOKENIMG = pygame.transform.smoothscale(
+            REDTOKENIMG, (SPACESIZE, SPACESIZE))
+        BLACKTOKENIMG = pygame.image.load('4row_black.png')
+        BLACKTOKENIMG = pygame.transform.smoothscale(
+            BLACKTOKENIMG, (SPACESIZE, SPACESIZE))
+        BOARDIMG = pygame.image.load('4row_board.png')
+        BOARDIMG = pygame.transform.smoothscale(BOARDIMG,
+                                                (SPACESIZE, SPACESIZE))
 
-    HUMANWINNERIMG = pygame.image.load('4row_humanwinner.png')
-    COMPUTERWINNERIMG = pygame.image.load('4row_computerwinner.png')
-    TIEWINNERIMG = pygame.image.load('4row_tie.png')
-    WINNERRECT = HUMANWINNERIMG.get_rect()
-    WINNERRECT.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
+        HUMANWINNERIMG = pygame.image.load('4row_humanwinner.png')
+        COMPUTERWINNERIMG = pygame.image.load('4row_computerwinner.png')
+        TIEWINNERIMG = pygame.image.load('4row_tie.png')
+        WINNERRECT = HUMANWINNERIMG.get_rect()
+        WINNERRECT.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
 
-    ARROWIMG = pygame.image.load('4row_arrow.png')
-    ARROWRECT = ARROWIMG.get_rect()
-    ARROWRECT.left = REDPILERECT.right + 10
-    ARROWRECT.centery = REDPILERECT.centery
+        ARROWIMG = pygame.image.load('4row_arrow.png')
+        ARROWRECT = ARROWIMG.get_rect()
+        ARROWRECT.left = REDPILERECT.right + 10
+        ARROWRECT.centery = REDPILERECT.centery
 
-    isFirstGame = True
+        isFirstGame = True
 
-    while True:
-        if runGame(isFirstGame):
-            break
-        isFirstGame = False
+        while True:
+            if runGame(isFirstGame):
+                break
+            isFirstGame = False
+    finally:
+        pygame.quit()
 
 
 def runGame(isFirstGame):
@@ -135,7 +139,6 @@ def runGame(isFirstGame):
         for event in pygame.event.get():  # event handling loop
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
-                pygame.quit()
                 return True
             elif event.type == MOUSEBUTTONUP:
                 return False
@@ -196,7 +199,6 @@ def getHumanMove(board, isFirstMove):
         for event in pygame.event.get():  # event handling loop
             if (event.type == QUIT or
                     (event.type == KEYUP and event.key == K_ESCAPE)):
-                pygame.quit()
                 return True
             elif (event.type == MOUSEBUTTONDOWN and not draggingToken and
                   REDPILERECT.collidepoint(event.pos)):

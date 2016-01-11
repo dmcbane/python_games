@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import blankpygame
+import catanimation
 import flippy
 import fourinarow
 import gemgem
@@ -16,7 +18,9 @@ import tetrominoforidiots
 # import wordguess
 import wormy
 
-games = [[gemgem.main, "A game like Bejeweled"],
+games = [[blankpygame.main, "Blank Game Template"],
+         [catanimation.main, "Animation Example"],
+         [gemgem.main, "A game like Bejeweled"],
          [fourinarow.main, "A game like Connect Four"],
          [flippy.main, "A game like Reversi"],
          [simulate.main, "A game like Simon"],

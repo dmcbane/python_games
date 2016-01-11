@@ -47,31 +47,34 @@ HINTCOLOR = BROWN
 def main():
     global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE
 
-    pygame.init()
-    MAINCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    pygame.display.set_caption('Flippy')
-    FONT = pygame.font.Font('freesansbold.ttf', 16)
-    BIGFONT = pygame.font.Font('freesansbold.ttf', 32)
+    try:
+        pygame.init()
+        MAINCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        pygame.display.set_caption('Flippy')
+        FONT = pygame.font.Font('freesansbold.ttf', 16)
+        BIGFONT = pygame.font.Font('freesansbold.ttf', 32)
 
-    # Set up the background image.
-    boardImage = pygame.image.load('flippyboard.png')
-    # Use smoothscale() to stretch the board image to fit the entire board:
-    boardImage = pygame.transform.smoothscale(
-        boardImage, (BOARDWIDTH * SPACESIZE, BOARDHEIGHT * SPACESIZE))
-    boardImageRect = boardImage.get_rect()
-    boardImageRect.topleft = (XMARGIN, YMARGIN)
-    BGIMAGE = pygame.image.load('flippybackground.png')
-    # Use smoothscale() to stretch the background image to fit the entire
-    # window:
-    BGIMAGE = pygame.transform.smoothscale(
-        BGIMAGE, (WINDOWWIDTH, WINDOWHEIGHT))
-    BGIMAGE.blit(boardImage, boardImageRect)
+        # Set up the background image.
+        boardImage = pygame.image.load('flippyboard.png')
+        # Use smoothscale() to stretch the board image to fit the entire board:
+        boardImage = pygame.transform.smoothscale(
+            boardImage, (BOARDWIDTH * SPACESIZE, BOARDHEIGHT * SPACESIZE))
+        boardImageRect = boardImage.get_rect()
+        boardImageRect.topleft = (XMARGIN, YMARGIN)
+        BGIMAGE = pygame.image.load('flippybackground.png')
+        # Use smoothscale() to stretch the background image to fit the entire
+        # window:
+        BGIMAGE = pygame.transform.smoothscale(
+            BGIMAGE, (WINDOWWIDTH, WINDOWHEIGHT))
+        BGIMAGE.blit(boardImage, boardImageRect)
 
-    # Run the main game.
-    while True:
-        if not runGame():
-            break
+        # Run the main game.
+        while True:
+            if not runGame():
+                break
+    finally:
+        pygame.quit()
 
 
 def runGame():
@@ -551,7 +554,6 @@ def checkForQuit():
     for event in pygame.event.get((QUIT, KEYUP)):  # event handling loop
         if (event.type == QUIT or
                 (event.type == KEYUP and event.key == K_ESCAPE)):
-            pygame.quit()
             return True
         else:
             return False

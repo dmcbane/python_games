@@ -49,121 +49,121 @@ GREENRECT = pygame.Rect(XMARGIN + BUTTONSIZE + BUTTONGAPSIZE,
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BEEP1, BEEP2, BEEP3, BEEP4
 
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    pygame.display.set_caption('Simulate')
+    try:
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        pygame.display.set_caption('Simulate')
 
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 16)
-    infoSurf = BASICFONT.render(
-        'Match the pattern by clicking on the button ' +
-        'or using the Q, W, A, S keys.', 1, DARKGRAY)
-    infoRect = infoSurf.get_rect()
-    infoRect.topleft = (10, WINDOWHEIGHT - 25)
+        BASICFONT = pygame.font.Font('freesansbold.ttf', 16)
+        infoSurf = BASICFONT.render(
+            'Match the pattern by clicking on the button ' +
+            'or using the Q, W, A, S keys.', 1, DARKGRAY)
+        infoRect = infoSurf.get_rect()
+        infoRect.topleft = (10, WINDOWHEIGHT - 25)
 
-    # load the sound files
-    BEEP1 = pygame.mixer.Sound('beep1.ogg')
-    BEEP2 = pygame.mixer.Sound('beep2.ogg')
-    BEEP3 = pygame.mixer.Sound('beep3.ogg')
-    BEEP4 = pygame.mixer.Sound('beep4.ogg')
+        # load the sound files
+        BEEP1 = pygame.mixer.Sound('beep1.ogg')
+        BEEP2 = pygame.mixer.Sound('beep2.ogg')
+        BEEP3 = pygame.mixer.Sound('beep3.ogg')
+        BEEP4 = pygame.mixer.Sound('beep4.ogg')
 
-    # Initialize some variables for a new game
-    pattern = []  # stores the pattern of colors
-    currentStep = 0  # the color the player must push next
-    lastClickTime = 0  # timestamp of the player's last button push
-    score = 0
-    # when False, the pattern is playing. when True, waiting for the player to
-    # click a colored button:
-    waitingForInput = False
+        # Initialize some variables for a new game
+        pattern = []  # stores the pattern of colors
+        currentStep = 0  # the color the player must push next
+        lastClickTime = 0  # timestamp of the player's last button push
+        score = 0
+        # when False, the pattern is playing. when True, waiting for the
+        # player t player too click a colored button:
+        waitingForInput = False
 
-    while True:  # main game loop
-        # button that was clicked (set to YELLOW, RED, GREEN, or BLUE)
-        clickedButton = None
-        DISPLAYSURF.fill(bgColor)
-        drawButtons()
+        while True:  # main game loop
+            # button that was clicked (set to YELLOW, RED, GREEN, or BLUE)
+            clickedButton = None
+            DISPLAYSURF.fill(bgColor)
+            drawButtons()
 
-        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
-        scoreRect = scoreSurf.get_rect()
-        scoreRect.topleft = (WINDOWWIDTH - 100, 10)
-        DISPLAYSURF.blit(scoreSurf, scoreRect)
+            scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
+            scoreRect = scoreSurf.get_rect()
+            scoreRect.topleft = (WINDOWWIDTH - 100, 10)
+            DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-        DISPLAYSURF.blit(infoSurf, infoRect)
+            DISPLAYSURF.blit(infoSurf, infoRect)
 
-        if checkForQuit():
-            return
+            if checkForQuit():
+                return
 
-        for event in pygame.event.get():  # event handling loop
-            if event.type == MOUSEBUTTONUP:
-                mousex, mousey = event.pos
-                clickedButton = getButtonClicked(mousex, mousey)
-            elif event.type == KEYDOWN:
-                if event.key == K_q:
-                    clickedButton = YELLOW
-                elif event.key == K_w:
-                    clickedButton = BLUE
-                elif event.key == K_a:
-                    clickedButton = RED
-                elif event.key == K_s:
-                    clickedButton = GREEN
+            for event in pygame.event.get():  # event handling loop
+                if event.type == MOUSEBUTTONUP:
+                    mousex, mousey = event.pos
+                    clickedButton = getButtonClicked(mousex, mousey)
+                elif event.type == KEYDOWN:
+                    if event.key == K_q:
+                        clickedButton = YELLOW
+                    elif event.key == K_w:
+                        clickedButton = BLUE
+                    elif event.key == K_a:
+                        clickedButton = RED
+                    elif event.key == K_s:
+                        clickedButton = GREEN
 
-        if not waitingForInput:
-            # play the pattern
-            pygame.display.update()
-            pygame.time.wait(1000)
-            pattern.append(random.choice((YELLOW, BLUE, RED, GREEN)))
-            for button in pattern:
-                if not flashButtonAnimation(button):
-                    return
-                pygame.time.wait(FLASHDELAY)
-            waitingForInput = True
-        else:
-            # wait for the player to enter buttons
-            if clickedButton and clickedButton == pattern[currentStep]:
-                # pushed the correct button
-                if not flashButtonAnimation(clickedButton):
-                    return
-                currentStep += 1
-                lastClickTime = time.time()
+            if not waitingForInput:
+                # play the pattern
+                pygame.display.update()
+                pygame.time.wait(1000)
+                pattern.append(random.choice((YELLOW, BLUE, RED, GREEN)))
+                for button in pattern:
+                    if not flashButtonAnimation(button):
+                        return
+                    pygame.time.wait(FLASHDELAY)
+                waitingForInput = True
+            else:
+                # wait for the player to enter buttons
+                if clickedButton and clickedButton == pattern[currentStep]:
+                    # pushed the correct button
+                    if not flashButtonAnimation(clickedButton):
+                        return
+                    currentStep += 1
+                    lastClickTime = time.time()
 
-                if currentStep == len(pattern):
-                    # pushed the last button in the pattern
+                    if currentStep == len(pattern):
+                        # pushed the last button in the pattern
+                        if not changeBackgroundAnimation():
+                            return
+                        score += 1
+                        waitingForInput = False
+                        currentStep = 0  # reset back to first step
+
+                elif ((clickedButton and
+                      clickedButton != pattern[currentStep]) or
+                      (currentStep != 0 and
+                       time.time() - TIMEOUT > lastClickTime)):
+                    # pushed the incorrect button, or has timed out
+                    if not gameOverAnimation():
+                        return
+                    # reset the variables for a new game:
+                    pattern = []
+                    currentStep = 0
+                    waitingForInput = False
+                    score = 0
+                    pygame.time.wait(1000)
                     if not changeBackgroundAnimation():
                         return
-                    score += 1
-                    waitingForInput = False
-                    currentStep = 0  # reset back to first step
 
-            elif ((clickedButton and
-                  clickedButton != pattern[currentStep]) or
-                  (currentStep != 0 and
-                   time.time() - TIMEOUT > lastClickTime)):
-                # pushed the incorrect button, or has timed out
-                if not gameOverAnimation():
-                    return
-                # reset the variables for a new game:
-                pattern = []
-                currentStep = 0
-                waitingForInput = False
-                score = 0
-                pygame.time.wait(1000)
-                if not changeBackgroundAnimation():
-                    return
-
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
+            pygame.display.update()
+            FPSCLOCK.tick(FPS)
+    finally:
+        pygame.quit()
 
 
 def checkForQuit():
-    quit = False
     for event in pygame.event.get(QUIT):  # get all the QUIT events
-        quit = True  # terminate if any QUIT events are present
+        return True  # terminate if any QUIT events are present
     for event in pygame.event.get(KEYUP):  # get all the KEYUP events
         if event.key == K_ESCAPE:
-            quit = True  # terminate if the KEYUP event was for the Esc key
+            return True  # terminate if the KEYUP event was for the Esc key
         pygame.event.post(event)  # put the other KEYUP event objects back
-    if quit:
-        pygame.quit()
-    return quit
+    return False
 
 
 def flashButtonAnimation(color, animationSpeed=50):
