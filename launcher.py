@@ -60,6 +60,26 @@ LIGHTBLUE = (156, 156, 247)
 LIGHTGRAY = (206, 206, 206)
 
 
+# def runGameSameProcess(game_key):
+#     global GAMES
+#
+#     for keys, fn, desc in GAMES:
+#         if game_key in keys and fn is not None:
+#             fn()
+#             break
+
+
+def runGameExternalProcess(game_key):
+    global GAMES
+
+    for keys, fn, desc in GAMES:
+        if game_key in keys and fn is not None:
+            p = Process(target=fn)  # , args=('bob',))
+            p.start()
+            p.join()
+            break
+
+
 def getTextRect(txt, font):
     global BLACK
 
@@ -139,10 +159,7 @@ def getButtonAt(x, y):
         row, col = divmod(idx, COLS)
         rect = getButtonRect(col, row)
         if rect.collidepoint(x, y):
-            if len(game[0]) > 1:
-                return game[0][0][0]
-            else:
-                return game[0][0]
+            return game[0][0]
 
     return None
 
@@ -160,15 +177,17 @@ def getInputGUI():
         if (event.type == QUIT):
             return APP_QUIT
         elif (event.type == KEYUP):
-            if unichr(event.key).upper() in keys:
-                return unichr(event.key).upper()
+            if chr(event.key).upper() in keys:
+                return chr(event.key).upper()
         else:  # type is MOUSEBUTTONUP
             mousex, mousey = event.pos
             # check if a button was clicked
             btn = getButtonAt(mousex, mousey)
-            print btn
             if btn is not None:
-                return btn
+                if btn is 'ESC':
+                    return APP_ESCAPE
+                else:
+                    return btn
     return None
 
 
@@ -217,6 +236,8 @@ def runLauncherGUI():
                                                            WINDOWHEIGHT),
                                                           pygame.FULLSCREEN)
                     pygame.display.flip()
+                    pygame.event.clear()
+                    pygame.event.set_allowed([KEYUP, MOUSEBUTTONUP, QUIT])
 
             pygame.display.update()
             FPSCLOCK.tick(FPS)
@@ -224,27 +245,7 @@ def runLauncherGUI():
         pygame.quit()
 
 
-# def runGameSameProcess(game_key):
-#     global GAMES
-#
-#     for keys, fn, desc in GAMES:
-#         if game_key in keys and fn is not None:
-#             fn()
-#             break
-
-
-def runGameExternalProcess(game_key):
-    global GAMES
-
-    for keys, fn, desc in GAMES:
-        if game_key in keys and fn is not None:
-            p = Process(target=fn)  # , args=('bob',))
-            p.start()
-            p.join()
-            break
-
-
-# def getGame():
+# def getGameConsole():
 #     global GAMES
 #
 #     keys = []
@@ -254,30 +255,30 @@ def runGameExternalProcess(game_key):
 #
 #     x = None
 #     while x is None:
-#         print 'Enter a number: '
+#         print('Enter a number: ')
 #         key = getch.getch().upper()
 #         if key in keys:
 #             x = key
 #
 #     return x
-
-
-# def showGames():
+#
+#
+# def showGamesConsole():
 #     global GAMES
 #
 #     for keys, fn, desc in GAMES:
-#         print "{0} - {1}".format("/".join(keys), desc)
-
-
-# def launch():
+#         print("{0} - {1}".format("/".join(keys), desc))
+#
+#
+# def runLauncherConsole():
 #     while True:
-#         showGames()
-#         game = getGame()
+#         showGamesConsole()
+#         game = getGameConsole()
 #         if game == APP_QUIT or game == APP_ESCAPE:  # q or ESC
 #             return
 #         runGameExternalProcess(game)
 
 
 if __name__ == '__main__':
-    # launch()
+    # runLauncherConsole()
     runLauncherGUI()
