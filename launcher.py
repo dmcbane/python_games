@@ -4,7 +4,6 @@ from multiprocessing import Process
 import pygame
 from pygame.locals import (QUIT, KEYUP, MOUSEBUTTONUP)
 # import getch
-import pdb
 
 import flippy
 import fourinarow
@@ -36,7 +35,8 @@ GAMES = [[["1"], gemgem.main, "Like Bejeweled"],
          [["D"], slidepuzzle.main, "Traditional slide puzzle"],
          [["ESC", "Q"], None, "Quit"]]
 
-APP_QUIT = 'quit'
+APP_QUIT = 'Q'
+APP_ESCAPE = '\x1b'
 FPS = 30
 SPACING = 20
 PADDING = 10
@@ -118,44 +118,55 @@ def drawButton(txt, col, row, txt_color, btn_fill_color, btn_border_color,
 
 def showGamesGUI(font):
     global GAMES, SPACING, PADDING, BTN_WIDTH, BTN_HEIGHT, \
-        WINDOWHEIGHT, WINDOWWIDTH
+        WINDOWHEIGHT, WINDOWWIDTH, COLS
 
     txt_width, txt_height = getMaxTextSize(font)
     BTN_WIDTH = txt_width + (PADDING * 2)
     BTN_HEIGHT = txt_height + (PADDING * 2)
 
-    cols = (WINDOWWIDTH - SPACING) // (BTN_WIDTH + SPACING)
+    COLS = (WINDOWWIDTH - SPACING) // (BTN_WIDTH + SPACING)
 
     for idx, game in enumerate(GAMES):
-        row, col = divmod(idx, cols)
+        row, col = divmod(idx, COLS)
         drawButton("{0} - {1}".format("/".join(game[0]), game[-1]),
                    col, row, BLACK, LIGHTBLUE, WHITE, font)
 
 
-def getKeyboardInputGUI():
+def getButtonAt(x, y):
+    global COLS
+
+    for idx, game in enumerate(GAMES):
+        row, col = divmod(idx, COLS)
+        rect = getButtonRect(col, row)
+        if rect.collidepoint(x, y):
+            if len(game[0]) > 1:
+                return game[0][0][0]
+            else:
+                return game[0][0]
+
+    return None
+
+
+def getInputGUI():
     global GAMES
 
     keys = []
     for a in map(lambda x: x[0], GAMES):
         keys.extend(a)
-    keys = map(lambda s: s.upper() if s is not 'ESC' else '\x1b', keys)
+    keys = map(lambda s: s.upper() if s is not 'ESC' else APP_ESCAPE, keys)
 
-    for event in pygame.event.get((KEYUP)):  # event handling loop
-        if unichr(event.key).upper() in keys:
-            return unichr(event.key).upper()
-
-    return None
-
-
-def getMouseInputGUI():
     # event handling loop
-    for event in pygame.event.get((QUIT, MOUSEBUTTONUP)):
+    for event in pygame.event.get((KEYUP, MOUSEBUTTONUP, QUIT)):
         if (event.type == QUIT):
             return APP_QUIT
+        elif (event.type == KEYUP):
+            if unichr(event.key).upper() in keys:
+                return unichr(event.key).upper()
         else:  # type is MOUSEBUTTONUP
             mousex, mousey = event.pos
             # check if a button was clicked
             btn = getButtonAt(mousex, mousey)
+            print btn
             if btn is not None:
                 return btn
     return None
@@ -182,8 +193,9 @@ def runLauncherGUI():
         titleRect.left = (WINDOWWIDTH - titleRect.width) // 2
         TOPMARGIN = titleRect.height + 40
 
-        keep_running = True
-        while keep_running:  # main game loop
+        pygame.event.set_allowed([KEYUP, MOUSEBUTTONUP, QUIT])
+
+        while True:  # main game loop
             # Draw the screen.
             DISPLAYSURF.fill(BLUE)
 
@@ -192,18 +204,15 @@ def runLauncherGUI():
 
             showGamesGUI(BASICFONT)
 
-            from_user = [elem
-                         for elem
-                         in [getKeyboardInputGUI(), getMouseInputGUI()]
-                         if elem is not None]
-            for item in from_user:
+            from_user = getInputGUI()
+            if from_user is not None:
                 # respond to events
-                if (item == 'Q') or (item == '\x1b'):
-                    keep_running = False
+                if (from_user == APP_QUIT) or (from_user == APP_ESCAPE):
+                    return
                 else:
                     DISPLAYSURF = pygame.display.set_mode((200, 200))
                     pygame.display.flip()
-                    runGameExternalProcess(item)
+                    runGameExternalProcess(from_user)
                     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,
                                                            WINDOWHEIGHT),
                                                           pygame.FULLSCREEN)
@@ -241,7 +250,7 @@ def runGameExternalProcess(game_key):
 #     keys = []
 #     for a in map(lambda x: x[0], GAMES):
 #         keys.extend(a)
-#     keys = map(lambda s: s.upper() if s is not 'ESC' else '\x1b', keys)
+#     keys = map(lambda s: s.upper() if s is not 'ESC' else APP_ESCAPE, keys)
 #
 #     x = None
 #     while x is None:
@@ -264,7 +273,7 @@ def runGameExternalProcess(game_key):
 #     while True:
 #         showGames()
 #         game = getGame()
-#         if game == 'Q' or game == '\x1b':  # q or ESC
+#         if game == APP_QUIT or game == APP_ESCAPE:  # q or ESC
 #             return
 #         runGameExternalProcess(game)
 
