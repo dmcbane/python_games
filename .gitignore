@@ -1,4 +1,6 @@
 *~
 /.ropeproject/
 *.pyc
+*.swn
+*.swo
 *.swp
